@@ -26,20 +26,20 @@
 
 template<typename T>
 struct opt_default_policy {
-  constexpr static bool is_initialized(const T& value) noexcept;
-  constexpr static void set_empty(T& value) noexcept;
+  constexpr static bool has_value(const T& value) noexcept;
+  constexpr static void reset(T& value) noexcept;
 };
 
-template<typename T, T MagicValue>
-struct opt_magic_value_policy {
-  constexpr static bool is_initialized(T value) noexcept { return value != MagicValue; }
-  constexpr static void set_empty(T& value) noexcept     { value = MagicValue; }
+template<typename T, T NullValue>
+struct opt_null_value_policy {
+  constexpr static bool has_value(T value) noexcept { return value != NullValue; }
+  constexpr static void reset(T& value) noexcept    { value = NullValue; }
 };
 
-template<typename T, typename MagicType>
-struct opt_magic_type_policy {
-  constexpr static bool is_initialized(T value) noexcept { return value != MagicType::value; }
-  constexpr static void set_empty(T& value) noexcept     { value = MagicType::value; }
+template<typename T, typename NullType>
+struct opt_null_type_policy {
+  constexpr static bool has_value(T value) noexcept { return value != NullType::value; }
+  constexpr static void reset(T& value) noexcept    { value = NullType::value; }
 };
 
 template<typename T, typename Policy>
@@ -176,10 +176,10 @@ public:
   constexpr T&& operator*() &&                   { return std::move(value); }
   constexpr const T&& operator*() const&&        { return std::move(value); }
 
-  constexpr explicit operator bool() const noexcept(noexcept(Policy::is_initialized(std::declval<T>())))
+  constexpr explicit operator bool() const noexcept(noexcept(Policy::has_value(std::declval<T>())))
   { return has_value(); }
-  constexpr bool has_value() const noexcept(noexcept(Policy::is_initialized(std::declval<T>())))
-  { return Policy::is_initialized(**this); }
+  constexpr bool has_value() const noexcept(noexcept(Policy::has_value(std::declval<T>())))
+  { return Policy::has_value(**this); }
 
   constexpr const T& value() const&              { return has_value() ? **this            : (throw std::experimental::bad_optional_access{"bad opt access"}, **this); }
   constexpr T& value() &                         { return has_value() ? **this            : (throw std::experimental::bad_optional_access{"bad opt access"}, **this); }
@@ -191,8 +191,8 @@ public:
   constexpr T value_or(U&& default_value) &&     { return has_value() ? std::move(**this) : T{std::forward<U>(default_value)}; }
 
   // modifiers
-  void reset() noexcept(noexcept(Policy::set_empty(std::declval<T&>())))
-  { Policy::set_empty(**this); }
+  void reset() noexcept(noexcept(Policy::reset(std::declval<T&>())))
+  { Policy::reset(**this); }
 };
 
 // relational operators

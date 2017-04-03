@@ -26,23 +26,22 @@
 namespace {
 
   template<typename T, T MagicValue>
-  using magic_opt = opt<T, opt_magic_value_policy<T, MagicValue>>;
+  using null_value_opt = opt<T, opt_null_value_policy<T, MagicValue>>;
 
   using namespace std::experimental;
-
 
   struct R {
     explicit R(double, double = 1.0) = delete;
     R(int num, int den = 1);
   };
 
-  struct MyMagicFloat { static constexpr float value = 0.0f; };
-  opt<float, opt_magic_type_policy<float, MyMagicFloat>> optFloat;
+  struct MyNullFloat { static constexpr float value = 0.0f; };
+  opt<float, opt_null_type_policy<float, MyNullFloat>> optFloat;
 }
 
 TEST(opt, defaultConstructor)
 {
-  magic_opt<int, -1> o;
+  null_value_opt<int, -1> o;
   EXPECT_FALSE(o);
   EXPECT_FALSE(o.has_value());
   EXPECT_EQ(999, o.value_or(999));
@@ -51,7 +50,7 @@ TEST(opt, defaultConstructor)
 
 TEST(opt, nulloptConstructor)
 {
-  magic_opt<int, -1> o{nullopt};
+  null_value_opt<int, -1> o{nullopt};
   EXPECT_FALSE(o);
   EXPECT_FALSE(o.has_value());
   EXPECT_EQ(999, o.value_or(999));
@@ -60,7 +59,7 @@ TEST(opt, nulloptConstructor)
 
 TEST(opt, valueConstructor1)
 {
-  magic_opt<int, -1> o{123};
+  null_value_opt<int, -1> o{123};
   EXPECT_TRUE(o);
   EXPECT_TRUE(o.has_value());
   EXPECT_EQ(123, *o);
@@ -70,7 +69,7 @@ TEST(opt, valueConstructor1)
 
 TEST(opt, valueConstructor2)
 {
-  magic_opt<int, -1> o = 123;
+  null_value_opt<int, -1> o = 123;
   EXPECT_TRUE(o);
   EXPECT_TRUE(o.has_value());
   EXPECT_EQ(123, *o);
@@ -80,7 +79,7 @@ TEST(opt, valueConstructor2)
 
 TEST(opt, inPlaceConstructor)
 {
-  magic_opt<int, -1> o{in_place, 123};
+  null_value_opt<int, -1> o{in_place, 123};
   EXPECT_TRUE(o);
   EXPECT_TRUE(o.has_value());
   EXPECT_EQ(123, *o);
@@ -90,7 +89,7 @@ TEST(opt, inPlaceConstructor)
 
 //TEST(opt, inPlaceConstructorInitList)
 //{
-//  magic_opt<int, -1> o{in_place, {123}};
+//  null_value_opt<int, -1> o{in_place, {123}};
 //  EXPECT_TRUE(o);
 //  EXPECT_TRUE(o.has_value());
 //  EXPECT_EQ(123, *o);
@@ -100,7 +99,7 @@ TEST(opt, inPlaceConstructor)
 
 TEST(opt, copyConstructionForEmpty)
 {
-  magic_opt<int, -1> o1;
+  null_value_opt<int, -1> o1;
   auto o2{o1};
   EXPECT_FALSE(o2);
   EXPECT_FALSE(o2.has_value());
@@ -110,7 +109,7 @@ TEST(opt, copyConstructionForEmpty)
 
 TEST(opt, moveConstructionForEmpty)
 {
-  magic_opt<int, -1> o1;
+  null_value_opt<int, -1> o1;
   auto o2{std::move(o1)};
   EXPECT_FALSE(o2);
   EXPECT_FALSE(o2.has_value());
