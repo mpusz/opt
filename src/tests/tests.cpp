@@ -23,6 +23,9 @@
 #include "opt.h"
 #include <gtest/gtest.h>
 
+// explicit instantiation needed to make code coverage metrics work correctly
+template class opt<int, opt_null_value_policy<int, -1>>;
+
 namespace {
 
   template<typename T, T MagicValue>

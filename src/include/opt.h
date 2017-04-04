@@ -184,8 +184,8 @@ public:
 
   constexpr const T& value() const&              { return has_value() ? **this            : (throw std::experimental::bad_optional_access{}, **this); }
   constexpr T& value() &                         { return has_value() ? **this            : (throw std::experimental::bad_optional_access{}, **this); }
-  constexpr T&& value() &&                       { return has_value() ? std::move(**this) : (throw std::experimental::bad_optional_access{}, **this); }
-  constexpr const T&& value() const&&            { return has_value() ? std::move(**this) : (throw std::experimental::bad_optional_access{}, **this); }
+  constexpr T&& value() &&                       { return has_value() ? std::move(**this) : (throw std::experimental::bad_optional_access{}, std::move(**this)); }
+  constexpr const T&& value() const&&            { return has_value() ? std::move(**this) : (throw std::experimental::bad_optional_access{}, std::move(**this)); }
   template<typename U>
   constexpr T value_or(U&& default_value) const& { return has_value() ? **this            : T{std::forward<U>(default_value)}; }
   template<typename U>

@@ -1,6 +1,10 @@
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg?maxAge=3600)](https://raw.githubusercontent.com/mpusz/opt/master/LICENSE)
+[![Travis CI](https://img.shields.io/travis/mpusz/opt/master.svg)](https://travis-ci.org/mpusz/opt)
+[![Codecov](https://img.shields.io/codecov/c/github/mpusz/opt/master.svg)](https://codecov.io/github/mpusz/opt?branch=master)
+
 # `opt<T, Policy>`
 
-`opt<T, Policy >` is a class template designed to express optionality.
+`opt<T, Policy>` is a class template designed to express optionality.
 
 It has interface similar to `std::optional<T>` ([see here](http://en.cppreference.com/w/cpp/utility/optional))
 but it does not use additional storage space for boolean flag needed to keep information if
@@ -35,7 +39,7 @@ may be used to provide _Null_ value for integral type right in the class type de
 opt<int, opt_null_value_policy<int, -1>> optInt;
 ```
 
-For types which values cannot be used as template parameter (e.g. `float`) one can use
+For types which values cannot be used as template parameter (e.g. `float`) one can use:
 ```
 template<typename T, typename NullType>
 struct opt_null_type_policy;

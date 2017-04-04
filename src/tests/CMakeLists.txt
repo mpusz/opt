@@ -24,5 +24,5 @@ set(SOURCE_FILES tests.cpp)
 
 add_executable(unit_tests ${SOURCE_FILES})
 target_link_libraries(unit_tests
-        PRIVATE gtest_main)
+        PRIVATE google::test)
 add_test(unit_tests unit_tests)

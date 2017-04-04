@@ -29,13 +29,14 @@ set(VERSION_MINOR 0 CACHE STRING "Project minor version number.")
 set(VERSION_PATCH 1 CACHE STRING "Project patch version number.")
 
 #set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1z")
 set(CMAKE_CXX_STANDARD_REQUIRED on)
 
 # add dependencies
 set(gtest_force_shared_crt ON CACHE BOOL "Use shared (DLL) run-time lib even when Google Test is built as static lib.")
 add_subdirectory(src/external/googletest EXCLUDE_FROM_ALL)
 target_include_directories(gtest_main PUBLIC src/external/googletest/include)
+add_library(google::test ALIAS gtest_main)
 
 # compilers-specific configuration
 include(cmake/compile_warnings.cmake OPTIONAL)
