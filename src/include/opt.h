@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <type_traits>
 #include <experimental/optional>
 
 template<typename T>
@@ -136,7 +137,7 @@ public:
   { other.has_value() ? (value_ = std::move(*other)) : reset(); }
 
   // assignment
-  opt& operator=(std::experimental::nullopt_t) noexcept { reset(); }
+  opt& operator=(std::experimental::nullopt_t) noexcept { reset(); return *this; }
   opt& operator=(const opt& other) = default;
   opt& operator=(opt&& other) = default;
 
@@ -146,7 +147,7 @@ public:
                             std::is_constructible<T, U>,
                             std::is_assignable<T&, U>> = true>
   opt& operator=(U&& value)
-  { **this = std::forward<U>(value); }
+  { **this = std::forward<U>(value); return *this; }
 
   template<typename U, typename P,
            detail::Requires<std::is_constructible<T, const U&>,
@@ -154,7 +155,7 @@ public:
                             std::negation<detail::constructs_or_converts_from_opt<T, U, P>>,
                             std::negation<detail::assigns_from_opt<T, U, P>>> = true>
   opt& operator=(const opt<U, P>& other)
-  { other.has_value() ? **this = **other : reset(); }
+  { other.has_value() ? **this = **other : reset(); return *this; }
 
   template<typename U, typename P,
            detail::Requires<std::is_constructible<T, U>,
@@ -162,7 +163,7 @@ public:
                             std::negation<detail::constructs_or_converts_from_opt<T, U, P>>,
                             std::negation<detail::assigns_from_opt<T, U, P>>> = true>
   opt& operator=(opt<U, P>&& other)
-  { other.has_value() ? **this = std::move(**other) : reset(); }
+  { other.has_value() ? **this = std::move(**other) : reset(); return *this; }
 
   // swap
   void swap(opt& other) noexcept(std::is_nothrow_move_constructible<T>::value /* && std::is_nothrow_swappable<T>::value */)
@@ -173,18 +174,18 @@ public:
   constexpr T* operator->()                      { return &value_; }
   constexpr const T& operator*() const&          { return value_; }
   constexpr T& operator*() &                     { return value_; }
-  constexpr T&& operator*() &&                   { return std::move(value); }
-  constexpr const T&& operator*() const&&        { return std::move(value); }
+  constexpr T&& operator*() &&                   { return std::move(value_); }
+  constexpr const T&& operator*() const&&        { return std::move(value_); }
 
   constexpr explicit operator bool() const noexcept(noexcept(Policy::has_value(std::declval<T>())))
   { return has_value(); }
   constexpr bool has_value() const noexcept(noexcept(Policy::has_value(std::declval<T>())))
   { return Policy::has_value(**this); }
 
-  constexpr const T& value() const&              { return has_value() ? **this            : (throw std::experimental::bad_optional_access{"bad opt access"}, **this); }
-  constexpr T& value() &                         { return has_value() ? **this            : (throw std::experimental::bad_optional_access{"bad opt access"}, **this); }
-  constexpr T&& value() &&                       { return has_value() ? std::move(**this) : (throw std::experimental::bad_optional_access{"bad opt access"}, **this); }
-  constexpr const T&& value() const&&            { return has_value() ? std::move(**this) : (throw std::experimental::bad_optional_access{"bad opt access"}, **this); }
+  constexpr const T& value() const&              { return has_value() ? **this            : (throw std::experimental::bad_optional_access{}, **this); }
+  constexpr T& value() &                         { return has_value() ? **this            : (throw std::experimental::bad_optional_access{}, **this); }
+  constexpr T&& value() &&                       { return has_value() ? std::move(**this) : (throw std::experimental::bad_optional_access{}, **this); }
+  constexpr const T&& value() const&&            { return has_value() ? std::move(**this) : (throw std::experimental::bad_optional_access{}, **this); }
   template<typename U>
   constexpr T value_or(U&& default_value) const& { return has_value() ? **this            : T{std::forward<U>(default_value)}; }
   template<typename U>
@@ -255,9 +256,9 @@ template<typename T, typename P>
 inline void swap(opt<T, P> &lhs, opt<T, P> &rhs) noexcept(noexcept(lhs.swap(rhs))) { lhs.swap(rhs); }
 
 // hash support
-template<typename T>
-struct hash;
-template<typename T, typename P>
-struct hash<opt<T, P>>;
+//template<typename T>
+//struct hash;
+//template<typename T, typename P>
+//struct hash<opt<T, P>>;
 
 }
