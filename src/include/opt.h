@@ -27,8 +27,8 @@
 
 template<typename T>
 struct opt_default_policy {
-  constexpr static bool has_value(const T& value) noexcept;
-  constexpr static void reset(T& value) noexcept;
+  constexpr static bool has_value(const T& value) noexcept = delete;
+  constexpr static void reset(T& value) noexcept = delete;
 };
 
 template<typename T, T NullValue>
