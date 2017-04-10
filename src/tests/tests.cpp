@@ -42,6 +42,12 @@ namespace {
 
   using namespace std::experimental;
 
+  struct MyBool {
+    bool value_;
+    constexpr MyBool(bool v) noexcept: value_{v} {}
+    constexpr operator bool() const noexcept { return value_; }
+  };
+
   struct R {
     explicit R(double, double = 1.0) = delete;
     R(int num, int den = 1);
@@ -54,18 +60,21 @@ namespace {
 
   template<>
   struct opt_traits<bool> {
+    using convertible_type = MyBool;
     static constexpr bool test_value = true;
     static constexpr bool other_value = false;
   };
 
   template<>
   struct opt_traits<int> {
+    using convertible_type = long;
     static constexpr int test_value = 123;
     static constexpr int other_value = 999;
   };
 
   template<>
   struct opt_traits<float> {
+    using convertible_type = double;
     static constexpr float test_value = 3.14f;
     static constexpr float other_value = 123.456f;
   };
@@ -318,7 +327,7 @@ TYPED_TEST(optTest, valueAssignmentForEmpty)
 {
   using opt_type = typename TestFixture::type;
   opt_type o;
-  o = this->value;
+  o = typename TestFixture::traits::convertible_type{this->value};
   EXPECT_TRUE(o);
   EXPECT_TRUE(o.has_value());
   EXPECT_EQ(this->value, *o);
@@ -330,7 +339,7 @@ TYPED_TEST(optTest, valueAssignmentForNotEmpty)
 {
   using opt_type = typename TestFixture::type;
   opt_type o{this->other_value};
-  o = this->value;
+  o = typename TestFixture::traits::convertible_type{this->value};
   EXPECT_TRUE(o);
   EXPECT_TRUE(o.has_value());
   EXPECT_EQ(this->value, *o);
