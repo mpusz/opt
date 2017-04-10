@@ -263,3 +263,53 @@ TYPED_TEST(optTest, copyAssignmentNotEmptyForNotEmpty)
   EXPECT_EQ(this->value, o2.value());
   EXPECT_EQ(this->value, o2.value_or(this->other_value));
 }
+
+TYPED_TEST(optTest, moveAssignmentEmptyForEmpty)
+{
+  using opt_type = typename TestFixture::type;
+  opt_type o1;
+  opt_type o2;
+  o2 = std::move(o1);
+  EXPECT_FALSE(o2);
+  EXPECT_FALSE(o2.has_value());
+  EXPECT_THROW(o2.value(), bad_optional_access);
+  EXPECT_EQ(this->other_value, o2.value_or(this->other_value));
+}
+
+TYPED_TEST(optTest, moveAssignmentNotEmptyForEmpty)
+{
+  using opt_type = typename TestFixture::type;
+  opt_type o1{this->value};
+  opt_type o2;
+  o2 = std::move(o1);
+  EXPECT_TRUE(o2);
+  EXPECT_TRUE(o2.has_value());
+  EXPECT_EQ(this->value, *o2);
+  EXPECT_EQ(this->value, o2.value());
+  EXPECT_EQ(this->value, o2.value_or(this->other_value));
+}
+
+TYPED_TEST(optTest, moveAssignmentEmptyForNotEmpty)
+{
+  using opt_type = typename TestFixture::type;
+  opt_type o1;
+  opt_type o2{this->value};
+  o2 = std::move(o1);
+  EXPECT_FALSE(o2);
+  EXPECT_FALSE(o2.has_value());
+  EXPECT_THROW(o2.value(), bad_optional_access);
+  EXPECT_EQ(this->other_value, o2.value_or(this->other_value));
+}
+
+TYPED_TEST(optTest, moveAssignmentNotEmptyForNotEmpty)
+{
+  using opt_type = typename TestFixture::type;
+  opt_type o1{this->value};
+  opt_type o2{this->other_value};
+  o2 = std::move(o1);
+  EXPECT_TRUE(o2);
+  EXPECT_TRUE(o2.has_value());
+  EXPECT_EQ(this->value, *o2);
+  EXPECT_EQ(this->value, o2.value());
+  EXPECT_EQ(this->value, o2.value_or(this->other_value));
+}
