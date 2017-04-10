@@ -26,7 +26,16 @@
 // explicit instantiation needed to make code coverage metrics work correctly
 template class opt<int, opt_null_value_policy<int, -1>>;
 
+template<>
+struct opt_default_policy<bool> {
+  using null_type = std::int8_t;
+  static constexpr null_type null_value = -1;
+  constexpr static bool has_value(bool value) noexcept { return reinterpret_cast<null_type&>(value) != null_value; }
+  constexpr static void reset(bool& value) noexcept    { reinterpret_cast<null_type&>(value) = null_value; }
+};
+
 namespace {
+
 
   template<typename T, T MagicValue>
   using null_value_opt = opt<T, opt_null_value_policy<T, MagicValue>>;
@@ -38,56 +47,93 @@ namespace {
     R(int num, int den = 1);
   };
 
-  struct MyNullFloat { static constexpr float value = 0.0f; };
-  opt<float, opt_null_type_policy<float, MyNullFloat>> optFloat;
+  struct NullFloat { static constexpr float value = 0.0f; };
+
+  template<typename T>
+  struct opt_traits;
+
+  template<>
+  struct opt_traits<bool> {
+    static constexpr bool test_value = true;
+    static constexpr bool other_value = false;
+  };
+
+  template<>
+  struct opt_traits<int> {
+    static constexpr int test_value = 123;
+    static constexpr int other_value = 999;
+  };
+
+  template<>
+  struct opt_traits<float> {
+    static constexpr float test_value = 3.14f;
+    static constexpr float other_value = 123.456f;
+  };
+
+  template<typename T>
+  class optTest : public ::testing::Test {
+  public:
+    using type = T;
+    using traits = opt_traits<typename type::value_type>;
+    const typename type::value_type value = traits::test_value;
+    const typename type::value_type other_value = traits::other_value;
+  };
+  using test_types = ::testing::Types<opt<bool>, null_value_opt<int, -1>, opt<float, opt_null_type_policy<float, NullFloat>>>;
+  TYPED_TEST_CASE(optTest, test_types);
+
 }
 
-TEST(opt, defaultConstructor)
+TYPED_TEST(optTest, defaultConstructor)
 {
-  null_value_opt<int, -1> o;
+  using opt_type = typename TestFixture::type;
+  opt_type o;
   EXPECT_FALSE(o);
   EXPECT_FALSE(o.has_value());
-  EXPECT_EQ(999, o.value_or(999));
   EXPECT_THROW(o.value(), bad_optional_access);
+  EXPECT_EQ(this->other_value, o.value_or(this->other_value));
 }
 
-TEST(opt, nulloptConstructor)
+TYPED_TEST(optTest, nulloptConstructor)
 {
-  null_value_opt<int, -1> o{nullopt};
+  using opt_type = typename TestFixture::type;
+  opt_type o{nullopt};
   EXPECT_FALSE(o);
   EXPECT_FALSE(o.has_value());
-  EXPECT_EQ(999, o.value_or(999));
   EXPECT_THROW(o.value(), bad_optional_access);
+  EXPECT_EQ(this->other_value, o.value_or(this->other_value));
 }
 
-TEST(opt, valueConstructor1)
+TYPED_TEST(optTest, valueConstructor1)
 {
-  null_value_opt<int, -1> o{123};
+  using opt_type = typename TestFixture::type;
+  opt_type o{this->value};
   EXPECT_TRUE(o);
   EXPECT_TRUE(o.has_value());
-  EXPECT_EQ(123, *o);
-  EXPECT_EQ(123, o.value());
-  EXPECT_EQ(123, o.value_or(999));
+  EXPECT_EQ(this->value, *o);
+  EXPECT_EQ(this->value, o.value());
+  EXPECT_EQ(this->value, o.value_or(this->other_value));
 }
 
-TEST(opt, valueConstructor2)
+TYPED_TEST(optTest, valueConstructor2)
 {
-  null_value_opt<int, -1> o = 123;
+  using opt_type = typename TestFixture::type;
+  opt_type o = this->value;
   EXPECT_TRUE(o);
   EXPECT_TRUE(o.has_value());
-  EXPECT_EQ(123, *o);
-  EXPECT_EQ(123, o.value());
-  EXPECT_EQ(123, o.value_or(999));
+  EXPECT_EQ(this->value, *o);
+  EXPECT_EQ(this->value, o.value());
+  EXPECT_EQ(this->value, o.value_or(this->other_value));
 }
 
-TEST(opt, inPlaceConstructor)
+TYPED_TEST(optTest, inPlaceConstructor)
 {
-  null_value_opt<int, -1> o{in_place, 123};
+  using opt_type = typename TestFixture::type;
+  opt_type o{in_place, this->value};
   EXPECT_TRUE(o);
   EXPECT_TRUE(o.has_value());
-  EXPECT_EQ(123, *o);
-  EXPECT_EQ(123, o.value());
-  EXPECT_EQ(123, o.value_or(999));
+  EXPECT_EQ(this->value, *o);
+  EXPECT_EQ(this->value, o.value());
+  EXPECT_EQ(this->value, o.value_or(this->other_value));
 }
 
 //TEST(opt, inPlaceConstructorInitList)
@@ -100,23 +146,49 @@ TEST(opt, inPlaceConstructor)
 //  EXPECT_EQ(123, o.value_or(999));
 //}
 
-TEST(opt, copyConstructionForEmpty)
+TYPED_TEST(optTest, copyConstructionForEmpty)
 {
-  null_value_opt<int, -1> o1;
+  using opt_type = typename TestFixture::type;
+  opt_type o1;
   auto o2{o1};
   EXPECT_FALSE(o2);
   EXPECT_FALSE(o2.has_value());
-  EXPECT_EQ(999, o2.value_or(999));
   EXPECT_THROW(o2.value(), bad_optional_access);
+  EXPECT_EQ(this->other_value, o2.value_or(this->other_value));
 }
 
-TEST(opt, moveConstructionForEmpty)
+TYPED_TEST(optTest, moveConstructionForEmpty)
 {
-  null_value_opt<int, -1> o1;
+  using opt_type = typename TestFixture::type;
+  opt_type o1;
   auto o2{std::move(o1)};
   EXPECT_FALSE(o2);
   EXPECT_FALSE(o2.has_value());
-  EXPECT_EQ(999, o2.value_or(999));
   EXPECT_THROW(o2.value(), bad_optional_access);
+  EXPECT_EQ(this->other_value, o2.value_or(this->other_value));
+}
+
+TYPED_TEST(optTest, copyConstructionForNotEmpty)
+{
+  using opt_type = typename TestFixture::type;
+  opt_type o1{this->value};
+  auto o2{o1};
+  EXPECT_TRUE(o2);
+  EXPECT_TRUE(o2.has_value());
+  EXPECT_EQ(this->value, *o2);
+  EXPECT_EQ(this->value, o2.value());
+  EXPECT_EQ(this->value, o2.value_or(this->other_value));
+}
+
+TYPED_TEST(optTest, moveConstructionForNotEmpty)
+{
+  using opt_type = typename TestFixture::type;
+  opt_type o1{this->value};
+  auto o2{std::move(o1)};
+  EXPECT_TRUE(o2);
+  EXPECT_TRUE(o2.has_value());
+  EXPECT_EQ(this->value, *o2);
+  EXPECT_EQ(this->value, o2.value());
+  EXPECT_EQ(this->value, o2.value_or(this->other_value));
 }
 
