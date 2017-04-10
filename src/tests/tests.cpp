@@ -30,8 +30,8 @@ template<>
 struct opt_default_policy<bool> {
   using null_type = std::int8_t;
   static constexpr null_type null_value = -1;
-  constexpr static bool has_value(bool value) noexcept { return reinterpret_cast<null_type&>(value) != null_value; }
-  constexpr static void reset(bool& value) noexcept    { reinterpret_cast<null_type&>(value) = null_value; }
+  static bool has_value(bool value) noexcept { return reinterpret_cast<null_type&>(value) != null_value; }
+  static void reset(bool& value) noexcept    { reinterpret_cast<null_type&>(value) = null_value; }
 };
 
 namespace {
