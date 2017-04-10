@@ -313,3 +313,27 @@ TYPED_TEST(optTest, moveAssignmentNotEmptyForNotEmpty)
   EXPECT_EQ(this->value, o2.value());
   EXPECT_EQ(this->value, o2.value_or(this->other_value));
 }
+
+TYPED_TEST(optTest, valueAssignmentForEmpty)
+{
+  using opt_type = typename TestFixture::type;
+  opt_type o;
+  o = this->value;
+  EXPECT_TRUE(o);
+  EXPECT_TRUE(o.has_value());
+  EXPECT_EQ(this->value, *o);
+  EXPECT_EQ(this->value, o.value());
+  EXPECT_EQ(this->value, o.value_or(this->other_value));
+}
+
+TYPED_TEST(optTest, valueAssignmentForNotEmpty)
+{
+  using opt_type = typename TestFixture::type;
+  opt_type o{this->other_value};
+  o = this->value;
+  EXPECT_TRUE(o);
+  EXPECT_TRUE(o.has_value());
+  EXPECT_EQ(this->value, *o);
+  EXPECT_EQ(this->value, o.value());
+  EXPECT_EQ(this->value, o.value_or(this->other_value));
+}
