@@ -395,6 +395,132 @@ TYPED_TEST(optTest, moveAssignmentNotEmptyForNotEmpty)
   EXPECT_EQ(this->value, o2.value_or(this->other_value));
 }
 
+TYPED_TEST(optTest, otherTypeCopyAssignmentEmptyForEmpty)
+{
+  using opt_type = typename TestFixture::type;
+  using other_opt_type = opt<typename TestFixture::traits::convertible_type, typename TestFixture::traits::convertible_policy_type>;
+  other_opt_type o1;
+  opt_type o2;
+  o2 = o1;
+  EXPECT_FALSE(o1);
+  EXPECT_FALSE(o1.has_value());
+  EXPECT_THROW(o1.value(), bad_optional_access);
+  EXPECT_EQ(this->other_value, o1.value_or(this->other_value));
+  EXPECT_FALSE(o2);
+  EXPECT_FALSE(o2.has_value());
+  EXPECT_THROW(o2.value(), bad_optional_access);
+  EXPECT_EQ(this->other_value, o2.value_or(this->other_value));
+}
+
+TYPED_TEST(optTest, otherTypeCopyAssignmentNotEmptyForEmpty)
+{
+  using opt_type = typename TestFixture::type;
+  using other_opt_type = opt<typename TestFixture::traits::convertible_type, typename TestFixture::traits::convertible_policy_type>;
+  other_opt_type o1{this->value};
+  opt_type o2;
+  o2 = o1;
+  EXPECT_TRUE(o1);
+  EXPECT_TRUE(o1.has_value());
+  EXPECT_EQ(this->value, *o1);
+  EXPECT_EQ(this->value, o1.value());
+  EXPECT_EQ(this->value, o1.value_or(this->other_value));
+  EXPECT_TRUE(o2);
+  EXPECT_TRUE(o2.has_value());
+  EXPECT_EQ(this->value, *o2);
+  EXPECT_EQ(this->value, o2.value());
+  EXPECT_EQ(this->value, o2.value_or(this->other_value));
+}
+
+TYPED_TEST(optTest, otherTypeCopyAssignmentEmptyForNotEmpty)
+{
+  using opt_type = typename TestFixture::type;
+  using other_opt_type = opt<typename TestFixture::traits::convertible_type, typename TestFixture::traits::convertible_policy_type>;
+  other_opt_type o1;
+  opt_type o2{this->value};
+  o2 = o1;
+  EXPECT_FALSE(o1);
+  EXPECT_FALSE(o1.has_value());
+  EXPECT_THROW(o1.value(), bad_optional_access);
+  EXPECT_EQ(this->other_value, o1.value_or(this->other_value));
+  EXPECT_FALSE(o2);
+  EXPECT_FALSE(o2.has_value());
+  EXPECT_THROW(o2.value(), bad_optional_access);
+  EXPECT_EQ(this->other_value, o2.value_or(this->other_value));
+}
+
+TYPED_TEST(optTest, otherTypeCopyAssignmentNotEmptyForNotEmpty)
+{
+  using opt_type = typename TestFixture::type;
+  using other_opt_type = opt<typename TestFixture::traits::convertible_type, typename TestFixture::traits::convertible_policy_type>;
+  other_opt_type o1{this->value};
+  opt_type o2{this->other_value};
+  o2 = o1;
+  EXPECT_TRUE(o1);
+  EXPECT_TRUE(o1.has_value());
+  EXPECT_EQ(this->value, *o1);
+  EXPECT_EQ(this->value, o1.value());
+  EXPECT_EQ(this->value, o1.value_or(this->other_value));
+  EXPECT_TRUE(o2);
+  EXPECT_TRUE(o2.has_value());
+  EXPECT_EQ(this->value, *o2);
+  EXPECT_EQ(this->value, o2.value());
+  EXPECT_EQ(this->value, o2.value_or(this->other_value));
+}
+
+TYPED_TEST(optTest, otherTypeMoveAssignmentEmptyForEmpty)
+{
+  using opt_type = typename TestFixture::type;
+  using other_opt_type = opt<typename TestFixture::traits::convertible_type, typename TestFixture::traits::convertible_policy_type>;
+  other_opt_type o1;
+  opt_type o2;
+  o2 = std::move(o1);
+  EXPECT_FALSE(o2);
+  EXPECT_FALSE(o2.has_value());
+  EXPECT_THROW(o2.value(), bad_optional_access);
+  EXPECT_EQ(this->other_value, o2.value_or(this->other_value));
+}
+
+TYPED_TEST(optTest, otherTypeMoveAssignmentNotEmptyForEmpty)
+{
+  using opt_type = typename TestFixture::type;
+  using other_opt_type = opt<typename TestFixture::traits::convertible_type, typename TestFixture::traits::convertible_policy_type>;
+  other_opt_type o1{this->value};
+  opt_type o2;
+  o2 = std::move(o1);
+  EXPECT_TRUE(o2);
+  EXPECT_TRUE(o2.has_value());
+  EXPECT_EQ(this->value, *o2);
+  EXPECT_EQ(this->value, o2.value());
+  EXPECT_EQ(this->value, o2.value_or(this->other_value));
+}
+
+TYPED_TEST(optTest, otherTypeMoveAssignmentEmptyForNotEmpty)
+{
+  using opt_type = typename TestFixture::type;
+  using other_opt_type = opt<typename TestFixture::traits::convertible_type, typename TestFixture::traits::convertible_policy_type>;
+  other_opt_type o1;
+  opt_type o2{this->value};
+  o2 = std::move(o1);
+  EXPECT_FALSE(o2);
+  EXPECT_FALSE(o2.has_value());
+  EXPECT_THROW(o2.value(), bad_optional_access);
+  EXPECT_EQ(this->other_value, o2.value_or(this->other_value));
+}
+
+TYPED_TEST(optTest, otherTypeMoveAssignmentNotEmptyForNotEmpty)
+{
+  using opt_type = typename TestFixture::type;
+  using other_opt_type = opt<typename TestFixture::traits::convertible_type, typename TestFixture::traits::convertible_policy_type>;
+  other_opt_type o1{this->value};
+  opt_type o2{this->other_value};
+  o2 = std::move(o1);
+  EXPECT_TRUE(o2);
+  EXPECT_TRUE(o2.has_value());
+  EXPECT_EQ(this->value, *o2);
+  EXPECT_EQ(this->value, o2.value());
+  EXPECT_EQ(this->value, o2.value_or(this->other_value));
+}
+
 TYPED_TEST(optTest, valueAssignmentForEmpty)
 {
   using opt_type = typename TestFixture::type;

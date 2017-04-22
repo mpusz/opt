@@ -125,7 +125,7 @@ public:
   explicit opt(const opt<U, P>& other)
   {
     if(other.has_value())
-      value_ = *other;
+      *this = *other;
     else
       reset();
   }
@@ -137,7 +137,7 @@ public:
   opt(const opt<U, P>& other)
   {
     if(other.has_value())
-      value_ = *other;
+      *this = *other;
     else
       reset();
   }
@@ -149,7 +149,7 @@ public:
   explicit constexpr opt(opt<U, P>&& other)
   {
     if(other.has_value())
-      value_ = std::move(*other);
+      *this = std::move(*other);
     else
       reset();
   }
@@ -161,7 +161,7 @@ public:
   constexpr opt(opt<U, P>&& other)
   {
     if(other.has_value())
-      value_ = std::move(*other);
+      *this = std::move(*other);
     else
       reset();
   }
@@ -191,7 +191,10 @@ public:
                             std::negation<detail::assigns_from_opt<T, U, P>>> = true>
   opt& operator=(const opt<U, P>& other)
   {
-    other.has_value() ? ** this = **other : reset();
+    if(other.has_value())
+      *this = *other;
+    else
+      reset();
     return *this;
   }
 
@@ -201,7 +204,10 @@ public:
                             std::negation<detail::assigns_from_opt<T, U, P>>> = true>
   opt& operator=(opt<U, P>&& other)
   {
-    other.has_value() ? ** this = std::move(**other) : reset();
+    if(other.has_value())
+      *this = std::move(*other);
+    else
+      reset();
     return *this;
   }
 
