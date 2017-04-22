@@ -124,7 +124,10 @@ public:
            detail::Requires<std::negation<std::is_convertible<const U&, T>>> = true>
   explicit opt(const opt<U, P>& other)
   {
-    other.has_value() ? (value_ = *other) : reset();
+    if(other.has_value())
+      value_ = *other;
+    else
+      reset();
   }
 
   template<typename U, typename P,
