@@ -48,6 +48,12 @@ class opt;
 
 namespace detail {
 
+template<typename T>
+struct is_opt : std::false_type {};
+
+template<typename T, typename P>
+struct is_opt<opt<T, P>> : std::true_type {};
+
 template<typename... Args>
 using Requires = std::enable_if_t<std::conjunction<Args...>::value, bool>;
 
@@ -62,6 +68,7 @@ template<typename T, typename U, typename P>
 using assigns_from_opt =
     std::disjunction<std::is_assignable<T&, opt<U, P>&>, std::is_assignable<T&, const opt<U, P>&>,
                      std::is_assignable<T&, opt<U, P>&&>, std::is_assignable<T&, const opt<U, P>&&>>;
+
 }
 
 template<typename T, typename Policy = opt_default_policy<T>>
@@ -91,10 +98,11 @@ public:
   {
   }
 
-  template<typename U = T, typename P = Policy,
+  template<typename U = T,
            detail::Requires<std::is_constructible<T, U&&>,
                             std::negation<std::is_same<std::decay_t<U>, std::experimental::in_place_t>>,
-                            std::negation<std::is_same<opt<T, Policy>, std::decay_t<U>>>> = true,
+                            std::negation<std::is_same<opt<T, Policy>, std::decay_t<U>>>,
+                            std::negation<detail::is_opt<std::decay_t<U>>>> = true,
            detail::Requires<std::negation<std::is_convertible<U&&, T>>> = true>
   explicit constexpr opt(U&& value) : value_{std::forward<U>(value)}
   {
@@ -103,7 +111,8 @@ public:
   template<typename U = T,
            detail::Requires<std::is_constructible<T, U&&>,
                             std::negation<std::is_same<std::decay_t<U>, std::experimental::in_place_t>>,
-                            std::negation<std::is_same<opt<T, Policy>, std::decay_t<U>>>> = true,
+                            std::negation<std::is_same<opt<T, Policy>, std::decay_t<U>>>,
+                            std::negation<detail::is_opt<std::decay_t<U>>>> = true,
            detail::Requires<std::is_convertible<U&&, T>> = true>
   constexpr opt(U&& value) : value_{std::forward<U>(value)}
   {
@@ -111,7 +120,7 @@ public:
 
   template<typename U, typename P,
            detail::Requires<std::is_constructible<T, const U&>,
-                            std::negation<detail::constructs_or_converts_from_opt<T, U, P>>> = true,
+                            std::disjunction<std::is_same<std::decay_t<T>, bool>, std::negation<detail::constructs_or_converts_from_opt<T, U, P>>>> = true,
            detail::Requires<std::negation<std::is_convertible<const U&, T>>> = true>
   explicit opt(const opt<U, P>& other)
   {
@@ -120,29 +129,38 @@ public:
 
   template<typename U, typename P,
            detail::Requires<std::is_constructible<T, const U&>,
-                            std::negation<detail::constructs_or_converts_from_opt<T, U, P>>> = true,
+                            std::disjunction<std::is_same<std::decay_t<T>, bool>, std::negation<detail::constructs_or_converts_from_opt<T, U, P>>>> = true,
            detail::Requires<std::is_convertible<const U&, T>> = true>
   opt(const opt<U, P>& other)
   {
-    other.has_value() ? (value_ = *other) : reset();
+    if(other.has_value())
+      value_ = *other;
+    else
+      reset();
   }
 
   template<typename U, typename P,
            detail::Requires<std::is_constructible<T, U&&>,
-                            std::negation<detail::constructs_or_converts_from_opt<T, U, P>>> = true,
+                            std::disjunction<std::is_same<std::decay_t<T>, bool>, std::negation<detail::constructs_or_converts_from_opt<T, U, P>>>> = true,
            detail::Requires<std::negation<std::is_convertible<U&&, T>>> = true>
   explicit constexpr opt(opt<U, P>&& other)
   {
-    other.has_value() ? (value_ = std::move(*other)) : reset();
+    if(other.has_value())
+      value_ = std::move(*other);
+    else
+      reset();
   }
 
   template<typename U, typename P,
            detail::Requires<std::is_constructible<T, U&&>,
-                            std::negation<detail::constructs_or_converts_from_opt<T, U, P>>> = true,
+                            std::disjunction<std::is_same<std::decay_t<T>, bool>, std::negation<detail::constructs_or_converts_from_opt<T, U, P>>>> = true,
            detail::Requires<std::is_convertible<U&&, T>> = true>
   constexpr opt(opt<U, P>&& other)
   {
-    other.has_value() ? (value_ = std::move(*other)) : reset();
+    if(other.has_value())
+      value_ = std::move(*other);
+    else
+      reset();
   }
 
   // assignment

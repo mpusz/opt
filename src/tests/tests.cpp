@@ -26,6 +26,24 @@
 // explicit instantiation needed to make code coverage metrics work correctly
 template class opt<int, opt_null_value_policy<int, -1>>;
 
+namespace {
+
+using namespace std::experimental;
+
+struct MyBool {
+  bool value_;
+  MyBool() = default;
+  constexpr MyBool(bool v) noexcept: value_{v} {}
+  constexpr operator bool() const noexcept { return value_; }
+};
+
+struct R {
+  explicit R(double, double = 1.0) = delete;
+  R(int num, int den = 1);
+};
+
+}
+
 template<>
 struct opt_default_policy<bool> {
   using null_type = std::int8_t;
@@ -34,26 +52,18 @@ struct opt_default_policy<bool> {
   static void reset(bool& value) noexcept    { reinterpret_cast<null_type&>(value) = null_value; }
 };
 
+template<>
+struct opt_default_policy<MyBool> {
+  using null_type = std::int8_t;
+  static constexpr null_type null_value = -1;
+  static bool has_value(MyBool value) noexcept { return reinterpret_cast<null_type&>(value.value_) != null_value; }
+  static void reset(MyBool& value) noexcept    { reinterpret_cast<null_type&>(value.value_) = null_value; }
+};
+
 namespace {
 
-
-  template<typename T, T MagicValue>
-  using null_value_opt = opt<T, opt_null_value_policy<T, MagicValue>>;
-
-  using namespace std::experimental;
-
-  struct MyBool {
-    bool value_;
-    constexpr MyBool(bool v) noexcept: value_{v} {}
-    constexpr operator bool() const noexcept { return value_; }
-  };
-
-  struct R {
-    explicit R(double, double = 1.0) = delete;
-    R(int num, int den = 1);
-  };
-
-  struct NullFloat { static constexpr float value = 0.0f; };
+  template<typename T>
+  struct NullFloating { static constexpr T value = 0.0f; };
 
   template<typename T>
   struct opt_traits;
@@ -61,6 +71,7 @@ namespace {
   template<>
   struct opt_traits<bool> {
     using convertible_type = MyBool;
+    using convertible_policy_type = opt_default_policy<convertible_type>;
     static constexpr bool test_value = true;
     static constexpr bool other_value = false;
   };
@@ -68,6 +79,7 @@ namespace {
   template<>
   struct opt_traits<int> {
     using convertible_type = long;
+    using convertible_policy_type = opt_null_value_policy<convertible_type, -1>;
     static constexpr int test_value = 123;
     static constexpr int other_value = 999;
   };
@@ -75,6 +87,7 @@ namespace {
   template<>
   struct opt_traits<float> {
     using convertible_type = double;
+    using convertible_policy_type = opt_null_type_policy<convertible_type, NullFloating<convertible_type>>;
     static constexpr float test_value = 3.14f;
     static constexpr float other_value = 123.456f;
   };
@@ -87,7 +100,7 @@ namespace {
     const typename type::value_type value = traits::test_value;
     const typename type::value_type other_value = traits::other_value;
   };
-  using test_types = ::testing::Types<opt<bool>, null_value_opt<int, -1>, opt<float, opt_null_type_policy<float, NullFloat>>>;
+  using test_types = ::testing::Types<opt<bool>, opt<int, opt_null_value_policy<int, -1>>, opt<float, opt_null_type_policy<float, NullFloating<float>>>>;
   TYPED_TEST_CASE(optTest, test_types);
 
 }
@@ -166,17 +179,6 @@ TYPED_TEST(optTest, copyConstructionForEmpty)
   EXPECT_EQ(this->other_value, o2.value_or(this->other_value));
 }
 
-TYPED_TEST(optTest, moveConstructionForEmpty)
-{
-  using opt_type = typename TestFixture::type;
-  opt_type o1;
-  auto o2{std::move(o1)};
-  EXPECT_FALSE(o2);
-  EXPECT_FALSE(o2.has_value());
-  EXPECT_THROW(o2.value(), bad_optional_access);
-  EXPECT_EQ(this->other_value, o2.value_or(this->other_value));
-}
-
 TYPED_TEST(optTest, copyConstructionForNotEmpty)
 {
   using opt_type = typename TestFixture::type;
@@ -187,6 +189,17 @@ TYPED_TEST(optTest, copyConstructionForNotEmpty)
   EXPECT_EQ(this->value, *o2);
   EXPECT_EQ(this->value, o2.value());
   EXPECT_EQ(this->value, o2.value_or(this->other_value));
+}
+
+TYPED_TEST(optTest, moveConstructionForEmpty)
+{
+  using opt_type = typename TestFixture::type;
+  opt_type o1;
+  auto o2{std::move(o1)};
+  EXPECT_FALSE(o2);
+  EXPECT_FALSE(o2.has_value());
+  EXPECT_THROW(o2.value(), bad_optional_access);
+  EXPECT_EQ(this->other_value, o2.value_or(this->other_value));
 }
 
 TYPED_TEST(optTest, moveConstructionForNotEmpty)
@@ -200,6 +213,41 @@ TYPED_TEST(optTest, moveConstructionForNotEmpty)
   EXPECT_EQ(this->value, o2.value());
   EXPECT_EQ(this->value, o2.value_or(this->other_value));
 }
+
+TYPED_TEST(optTest, otherTypeCopyConstructionForEmpty)
+{
+  using opt_type = typename TestFixture::type;
+  using other_opt_type = opt<typename TestFixture::traits::convertible_type, typename TestFixture::traits::convertible_policy_type>;
+  other_opt_type o1;
+  opt_type o2{o1};
+  EXPECT_FALSE(o1);
+  EXPECT_FALSE(o1.has_value());
+  EXPECT_THROW(o1.value(), bad_optional_access);
+  EXPECT_EQ(this->other_value, o1.value_or(this->other_value));
+  EXPECT_FALSE(o2);
+  EXPECT_FALSE(o2.has_value());
+  EXPECT_THROW(o2.value(), bad_optional_access);
+  EXPECT_EQ(this->other_value, o2.value_or(this->other_value));
+}
+
+TYPED_TEST(optTest, otherTypeCopyConstructionForNotEmpty)
+{
+  using opt_type = typename TestFixture::type;
+  using other_opt_type = opt<typename TestFixture::traits::convertible_type, typename TestFixture::traits::convertible_policy_type>;
+  other_opt_type o1{this->value};
+  opt_type o2{o1};
+  EXPECT_TRUE(o1);
+  EXPECT_TRUE(o1.has_value());
+  EXPECT_EQ(this->value, *o1);
+  EXPECT_EQ(this->value, o1.value());
+  EXPECT_EQ(this->value, o1.value_or(this->other_value));
+  EXPECT_TRUE(o2);
+  EXPECT_TRUE(o2.has_value());
+  EXPECT_EQ(this->value, *o2);
+  EXPECT_EQ(this->value, o2.value());
+  EXPECT_EQ(this->value, o2.value_or(this->other_value));
+}
+
 
 TYPED_TEST(optTest, nullAssignmentEmptyForEmpty)
 {
