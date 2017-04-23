@@ -113,6 +113,12 @@ TYPED_TEST(optTyped, defaultConstructor)
   EXPECT_FALSE(o.has_value());
   EXPECT_THROW(o.value(), bad_optional_access);
   EXPECT_EQ(this->other_value, o.value_or(this->other_value));
+
+  const opt_type& co{o};
+  EXPECT_FALSE(co);
+  EXPECT_FALSE(co.has_value());
+  EXPECT_THROW(co.value(), bad_optional_access);
+  EXPECT_EQ(this->other_value, co.value_or(this->other_value));
 }
 
 TYPED_TEST(optTyped, nulloptConstructor)
@@ -123,6 +129,12 @@ TYPED_TEST(optTyped, nulloptConstructor)
   EXPECT_FALSE(o.has_value());
   EXPECT_THROW(o.value(), bad_optional_access);
   EXPECT_EQ(this->other_value, o.value_or(this->other_value));
+
+  const opt_type& co{o};
+  EXPECT_FALSE(co);
+  EXPECT_FALSE(co.has_value());
+  EXPECT_THROW(co.value(), bad_optional_access);
+  EXPECT_EQ(this->other_value, co.value_or(this->other_value));
 }
 
 TYPED_TEST(optTyped, valueConstructor1)
@@ -134,6 +146,13 @@ TYPED_TEST(optTyped, valueConstructor1)
   EXPECT_EQ(this->value, *o);
   EXPECT_EQ(this->value, o.value());
   EXPECT_EQ(this->value, o.value_or(this->other_value));
+
+  const opt_type& co{o};
+  EXPECT_TRUE(co);
+  EXPECT_TRUE(co.has_value());
+  EXPECT_EQ(this->value, *co);
+  EXPECT_EQ(this->value, co.value());
+  EXPECT_EQ(this->value, co.value_or(this->other_value));
 }
 
 TYPED_TEST(optTyped, valueConstructor2)
@@ -145,6 +164,13 @@ TYPED_TEST(optTyped, valueConstructor2)
   EXPECT_EQ(this->value, *o);
   EXPECT_EQ(this->value, o.value());
   EXPECT_EQ(this->value, o.value_or(this->other_value));
+
+  const opt_type& co{o};
+  EXPECT_TRUE(co);
+  EXPECT_TRUE(co.has_value());
+  EXPECT_EQ(this->value, *co);
+  EXPECT_EQ(this->value, co.value());
+  EXPECT_EQ(this->value, co.value_or(this->other_value));
 }
 
 TYPED_TEST(optTyped, inPlaceConstructor)
@@ -156,6 +182,13 @@ TYPED_TEST(optTyped, inPlaceConstructor)
   EXPECT_EQ(this->value, *o);
   EXPECT_EQ(this->value, o.value());
   EXPECT_EQ(this->value, o.value_or(this->other_value));
+
+  const opt_type& co{o};
+  EXPECT_TRUE(co);
+  EXPECT_TRUE(co.has_value());
+  EXPECT_EQ(this->value, *co);
+  EXPECT_EQ(this->value, co.value());
+  EXPECT_EQ(this->value, co.value_or(this->other_value));
 }
 
 //TEST(opt, inPlaceConstructorInitList)
