@@ -121,6 +121,16 @@ TYPED_TEST(optTyped, defaultConstructor)
   EXPECT_EQ(this->other_value, co.value_or(this->other_value));
 }
 
+TYPED_TEST(optTyped, defaultConstructorRvalue)
+{
+  using opt_type = typename TestFixture::type;
+  EXPECT_FALSE(opt_type{});
+  EXPECT_FALSE(opt_type{}.has_value());
+  EXPECT_THROW(opt_type{}.value(), bad_optional_access);
+  EXPECT_EQ(this->other_value, opt_type{}.value_or(this->other_value));
+
+}
+
 TYPED_TEST(optTyped, nulloptConstructor)
 {
   using opt_type = typename TestFixture::type;
@@ -171,6 +181,16 @@ TYPED_TEST(optTyped, valueConstructor2)
   EXPECT_EQ(this->value, *co);
   EXPECT_EQ(this->value, co.value());
   EXPECT_EQ(this->value, co.value_or(this->other_value));
+}
+
+TYPED_TEST(optTyped, valueConstructorRvalue)
+{
+  using opt_type = typename TestFixture::type;
+  EXPECT_TRUE(opt_type{this->value});
+  EXPECT_TRUE(opt_type{this->value}.has_value());
+  EXPECT_EQ(this->value, *opt_type{this->value});
+  EXPECT_EQ(this->value, opt_type{this->value}.value());
+  EXPECT_EQ(this->value, opt_type{this->value}.value_or(this->other_value));
 }
 
 TYPED_TEST(optTyped, inPlaceConstructor)
