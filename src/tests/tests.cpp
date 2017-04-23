@@ -67,8 +67,8 @@ const bool opt_default_policy<bool>::null_value_ = opt_default_policy<bool>::mak
 
 template<>
 struct opt_default_policy<my_bool> {
-  static constexpr bool has_value(my_bool value) noexcept { return reinterpret_cast<null_type_&>(value.value_) != reinterpret_cast<const null_type_&>(null_value_.value_); }
-  static my_bool null_value() noexcept                    { return null_value_; }
+  static bool has_value(my_bool value) noexcept { return reinterpret_cast<null_type_&>(value.value_) != reinterpret_cast<const null_type_&>(null_value_.value_); }
+  static my_bool null_value() noexcept          { return null_value_; }
 private:
   using null_type_ = std::int8_t;
   static my_bool make_null()
