@@ -86,7 +86,7 @@ struct opt_default_policy<weekday> {
   static constexpr bool has_value(weekday value) noexcept { return value.value_ != null_underlying_value_; }
   static constexpr weekday null_value() noexcept          { return null_value_; }
 private:
-  using null_underlying_type_ = weekday::underlying_type ;
+  using null_underlying_type_ = weekday::underlying_type;
   static constexpr null_underlying_type_ null_underlying_value_ = std::numeric_limits<null_underlying_type_>::max();
   static constexpr weekday null_value_{std::numeric_limits<decltype(std::declval<weekday>().value_)>::max()};
 };
@@ -244,6 +244,24 @@ TYPED_TEST(optTyped, valueConstructor2)
 {
   using opt_type = typename TestFixture::type;
   opt_type o = this->value_1;
+  EXPECT_TRUE(o);
+  EXPECT_TRUE(o.has_value());
+  EXPECT_EQ(this->value_1, *o);
+  EXPECT_EQ(this->value_1, o.value());
+  EXPECT_EQ(this->value_1, o.value_or(this->value_2));
+
+  const opt_type& co{o};
+  EXPECT_TRUE(co);
+  EXPECT_TRUE(co.has_value());
+  EXPECT_EQ(this->value_1, *co);
+  EXPECT_EQ(this->value_1, co.value());
+  EXPECT_EQ(this->value_1, co.value_or(this->value_2));
+}
+
+TYPED_TEST(optTyped, valueConstructorOther1)
+{
+  using opt_type = typename TestFixture::type;
+  opt_type o{this->other_value_1};
   EXPECT_TRUE(o);
   EXPECT_TRUE(o.has_value());
   EXPECT_EQ(this->value_1, *o);
