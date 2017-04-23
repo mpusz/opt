@@ -27,20 +27,20 @@
 
 template<typename T>
 struct opt_default_policy {
-  constexpr static bool has_value(const T& value) noexcept = delete;
-  constexpr static void reset(T& value) noexcept = delete;
+  static constexpr bool has_value(const T& value) noexcept = delete;
+  static constexpr T null_value() noexcept = delete;
 };
 
 template<typename T, T NullValue>
 struct opt_null_value_policy {
-  constexpr static bool has_value(T value) noexcept { return value != NullValue; }
-  constexpr static void reset(T& value) noexcept { value = NullValue; }
+  static constexpr bool has_value(T value) noexcept { return value != NullValue; }
+  static constexpr T null_value() noexcept { return NullValue; }
 };
 
 template<typename T, typename NullType>
 struct opt_null_type_policy {
-  constexpr static bool has_value(T value) noexcept { return value != NullType::value; }
-  constexpr static void reset(T& value) noexcept { value = NullType::value; }
+  static constexpr bool has_value(T value) noexcept { return value != NullType::value; }
+  static constexpr T null_value() noexcept { return NullType::value; }
 };
 
 template<typename T, typename Policy>
@@ -79,9 +79,9 @@ public:
   using value_type = T;
 
   // constructors
-  constexpr opt() noexcept { reset(); }
+  constexpr opt() noexcept(noexcept(Policy::null_value())) : value_{Policy::null_value()} {}
 
-  constexpr opt(std::experimental::nullopt_t) noexcept { reset(); }
+  constexpr opt(std::experimental::nullopt_t) noexcept(noexcept(Policy::null_value())) : opt{} {}
 
   opt(const opt&) = default;
   opt(opt&&) = default;
@@ -122,49 +122,25 @@ public:
            detail::Requires<std::is_constructible<T, const U&>,
                             std::disjunction<std::is_same<std::decay_t<T>, bool>, std::negation<detail::constructs_or_converts_from_opt<T, U, P>>>> = true,
            detail::Requires<std::negation<std::is_convertible<const U&, T>>> = true>
-  explicit opt(const opt<U, P>& other)
-  {
-    if(other.has_value())
-      *this = *other;
-    else
-      reset();
-  }
+  explicit opt(const opt<U, P>& other) : value_{other.has_value() ? T{*other} : Policy::null_value()} {}
 
   template<typename U, typename P,
            detail::Requires<std::is_constructible<T, const U&>,
                             std::disjunction<std::is_same<std::decay_t<T>, bool>, std::negation<detail::constructs_or_converts_from_opt<T, U, P>>>> = true,
            detail::Requires<std::is_convertible<const U&, T>> = true>
-  opt(const opt<U, P>& other)
-  {
-    if(other.has_value())
-      *this = *other;
-    else
-      reset();
-  }
+  opt(const opt<U, P>& other) : value_{other.has_value() ? T{*other} : Policy::null_value()} {}
 
   template<typename U, typename P,
            detail::Requires<std::is_constructible<T, U&&>,
                             std::disjunction<std::is_same<std::decay_t<T>, bool>, std::negation<detail::constructs_or_converts_from_opt<T, U, P>>>> = true,
            detail::Requires<std::negation<std::is_convertible<U&&, T>>> = true>
-  explicit constexpr opt(opt<U, P>&& other)
-  {
-    if(other.has_value())
-      *this = std::move(*other);
-    else
-      reset();
-  }
+  explicit constexpr opt(opt<U, P>&& other) : value_{other.has_value() ? T{std::move(*other)} : Policy::null_value()} {}
 
   template<typename U, typename P,
            detail::Requires<std::is_constructible<T, U&&>,
                             std::disjunction<std::is_same<std::decay_t<T>, bool>, std::negation<detail::constructs_or_converts_from_opt<T, U, P>>>> = true,
            detail::Requires<std::is_convertible<U&&, T>> = true>
-  constexpr opt(opt<U, P>&& other)
-  {
-    if(other.has_value())
-      *this = std::move(*other);
-    else
-      reset();
-  }
+  constexpr opt(opt<U, P>&& other) : value_{other.has_value() ? T{std::move(*other)} : Policy::null_value()} {}
 
   // assignment
   opt& operator=(std::experimental::nullopt_t) noexcept
@@ -247,7 +223,7 @@ public:
   // clang-format on
 
   // modifiers
-  void reset() noexcept(noexcept(Policy::reset(std::declval<T&>()))) { Policy::reset(**this); }
+  void reset() noexcept(noexcept(Policy::null_value())) { **this = Policy::null_value(); }
 };
 
 // relational operators
