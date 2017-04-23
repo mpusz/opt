@@ -296,10 +296,10 @@ template<typename T, typename P> constexpr bool operator!=(std::experimental::nu
 template<typename T, typename P> constexpr bool operator< (const opt<T, P>&,   std::experimental::nullopt_t) noexcept { return false; }
 template<typename T, typename P> constexpr bool operator< (std::experimental::nullopt_t, const opt<T, P>& o) noexcept { return static_cast<bool>(o); }
 template<typename T, typename P> constexpr bool operator<=(const opt<T, P>& o, std::experimental::nullopt_t) noexcept { return !o; }
-template<typename T, typename P> constexpr bool operator<=(std::experimental::nullopt_t, const opt<T, P>& o) noexcept { return true; }
+template<typename T, typename P> constexpr bool operator<=(std::experimental::nullopt_t, const opt<T, P>&  ) noexcept { return true; }
 template<typename T, typename P> constexpr bool operator> (const opt<T, P>& o, std::experimental::nullopt_t) noexcept { return static_cast<bool>(o); }
-template<typename T, typename P> constexpr bool operator> (std::experimental::nullopt_t, const opt<T, P>& o) noexcept { return false; }
-template<typename T, typename P> constexpr bool operator>=(const opt<T, P>& o, std::experimental::nullopt_t) noexcept { return true; }
+template<typename T, typename P> constexpr bool operator> (std::experimental::nullopt_t, const opt<T, P>&  ) noexcept { return false; }
+template<typename T, typename P> constexpr bool operator>=(const opt<T, P>&,   std::experimental::nullopt_t) noexcept { return true; }
 template<typename T, typename P> constexpr bool operator>=(std::experimental::nullopt_t, const opt<T, P>& o) noexcept { return !o; }
 
 // comparison with T

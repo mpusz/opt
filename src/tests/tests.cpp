@@ -93,7 +93,7 @@ namespace {
   };
 
   template<typename T>
-  class optTest : public ::testing::Test {
+  class optTyped : public ::testing::Test {
   public:
     using type = T;
     using traits = opt_traits<typename type::value_type>;
@@ -101,11 +101,11 @@ namespace {
     const typename type::value_type other_value = traits::other_value;
   };
   using test_types = ::testing::Types<opt<bool>, opt<int, opt_null_value_policy<int, -1>>, opt<float, opt_null_type_policy<float, NullFloating<float>>>>;
-  TYPED_TEST_CASE(optTest, test_types);
+  TYPED_TEST_CASE(optTyped, test_types);
 
 }
 
-TYPED_TEST(optTest, defaultConstructor)
+TYPED_TEST(optTyped, defaultConstructor)
 {
   using opt_type = typename TestFixture::type;
   opt_type o;
@@ -115,7 +115,7 @@ TYPED_TEST(optTest, defaultConstructor)
   EXPECT_EQ(this->other_value, o.value_or(this->other_value));
 }
 
-TYPED_TEST(optTest, nulloptConstructor)
+TYPED_TEST(optTyped, nulloptConstructor)
 {
   using opt_type = typename TestFixture::type;
   opt_type o{nullopt};
@@ -125,7 +125,7 @@ TYPED_TEST(optTest, nulloptConstructor)
   EXPECT_EQ(this->other_value, o.value_or(this->other_value));
 }
 
-TYPED_TEST(optTest, valueConstructor1)
+TYPED_TEST(optTyped, valueConstructor1)
 {
   using opt_type = typename TestFixture::type;
   opt_type o{this->value};
@@ -136,7 +136,7 @@ TYPED_TEST(optTest, valueConstructor1)
   EXPECT_EQ(this->value, o.value_or(this->other_value));
 }
 
-TYPED_TEST(optTest, valueConstructor2)
+TYPED_TEST(optTyped, valueConstructor2)
 {
   using opt_type = typename TestFixture::type;
   opt_type o = this->value;
@@ -147,7 +147,7 @@ TYPED_TEST(optTest, valueConstructor2)
   EXPECT_EQ(this->value, o.value_or(this->other_value));
 }
 
-TYPED_TEST(optTest, inPlaceConstructor)
+TYPED_TEST(optTyped, inPlaceConstructor)
 {
   using opt_type = typename TestFixture::type;
   opt_type o{in_place, this->value};
@@ -168,7 +168,7 @@ TYPED_TEST(optTest, inPlaceConstructor)
 //  EXPECT_EQ(123, o.value_or(999));
 //}
 
-TYPED_TEST(optTest, copyConstructionForEmpty)
+TYPED_TEST(optTyped, copyConstructionForEmpty)
 {
   using opt_type = typename TestFixture::type;
   opt_type o1;
@@ -179,7 +179,7 @@ TYPED_TEST(optTest, copyConstructionForEmpty)
   EXPECT_EQ(this->other_value, o2.value_or(this->other_value));
 }
 
-TYPED_TEST(optTest, copyConstructionForNotEmpty)
+TYPED_TEST(optTyped, copyConstructionForNotEmpty)
 {
   using opt_type = typename TestFixture::type;
   opt_type o1{this->value};
@@ -191,7 +191,7 @@ TYPED_TEST(optTest, copyConstructionForNotEmpty)
   EXPECT_EQ(this->value, o2.value_or(this->other_value));
 }
 
-TYPED_TEST(optTest, moveConstructionForEmpty)
+TYPED_TEST(optTyped, moveConstructionForEmpty)
 {
   using opt_type = typename TestFixture::type;
   opt_type o1;
@@ -202,7 +202,7 @@ TYPED_TEST(optTest, moveConstructionForEmpty)
   EXPECT_EQ(this->other_value, o2.value_or(this->other_value));
 }
 
-TYPED_TEST(optTest, moveConstructionForNotEmpty)
+TYPED_TEST(optTyped, moveConstructionForNotEmpty)
 {
   using opt_type = typename TestFixture::type;
   opt_type o1{this->value};
@@ -214,7 +214,7 @@ TYPED_TEST(optTest, moveConstructionForNotEmpty)
   EXPECT_EQ(this->value, o2.value_or(this->other_value));
 }
 
-TYPED_TEST(optTest, otherTypeCopyConstructionForEmpty)
+TYPED_TEST(optTyped, otherTypeCopyConstructionForEmpty)
 {
   using opt_type = typename TestFixture::type;
   using other_opt_type = opt<typename TestFixture::traits::convertible_type, typename TestFixture::traits::convertible_policy_type>;
@@ -230,7 +230,7 @@ TYPED_TEST(optTest, otherTypeCopyConstructionForEmpty)
   EXPECT_EQ(this->other_value, o2.value_or(this->other_value));
 }
 
-TYPED_TEST(optTest, otherTypeCopyConstructionForNotEmpty)
+TYPED_TEST(optTyped, otherTypeCopyConstructionForNotEmpty)
 {
   using opt_type = typename TestFixture::type;
   using other_opt_type = opt<typename TestFixture::traits::convertible_type, typename TestFixture::traits::convertible_policy_type>;
@@ -248,7 +248,7 @@ TYPED_TEST(optTest, otherTypeCopyConstructionForNotEmpty)
   EXPECT_EQ(this->value, o2.value_or(this->other_value));
 }
 
-TYPED_TEST(optTest, otherTypeMoveConstructionForEmpty)
+TYPED_TEST(optTyped, otherTypeMoveConstructionForEmpty)
 {
   using opt_type = typename TestFixture::type;
   using other_opt_type = opt<typename TestFixture::traits::convertible_type, typename TestFixture::traits::convertible_policy_type>;
@@ -260,7 +260,7 @@ TYPED_TEST(optTest, otherTypeMoveConstructionForEmpty)
   EXPECT_EQ(this->other_value, o2.value_or(this->other_value));
 }
 
-TYPED_TEST(optTest, otherTypeMoveConstructionForNotEmpty)
+TYPED_TEST(optTyped, otherTypeMoveConstructionForNotEmpty)
 {
   using opt_type = typename TestFixture::type;
   using other_opt_type = opt<typename TestFixture::traits::convertible_type, typename TestFixture::traits::convertible_policy_type>;
@@ -273,7 +273,7 @@ TYPED_TEST(optTest, otherTypeMoveConstructionForNotEmpty)
   EXPECT_EQ(this->value, o2.value_or(this->other_value));
 }
 
-TYPED_TEST(optTest, nullAssignmentEmptyForEmpty)
+TYPED_TEST(optTyped, nullAssignmentEmptyForEmpty)
 {
   using opt_type = typename TestFixture::type;
   opt_type o;
@@ -284,7 +284,7 @@ TYPED_TEST(optTest, nullAssignmentEmptyForEmpty)
   EXPECT_EQ(this->other_value, o.value_or(this->other_value));
 }
 
-TYPED_TEST(optTest, nullAssignmentEmptyForNotEmpty)
+TYPED_TEST(optTyped, nullAssignmentEmptyForNotEmpty)
 {
   using opt_type = typename TestFixture::type;
   opt_type o{this->value};
@@ -295,7 +295,7 @@ TYPED_TEST(optTest, nullAssignmentEmptyForNotEmpty)
   EXPECT_EQ(this->other_value, o.value_or(this->other_value));
 }
 
-TYPED_TEST(optTest, copyAssignmentEmptyForEmpty)
+TYPED_TEST(optTyped, copyAssignmentEmptyForEmpty)
 {
   using opt_type = typename TestFixture::type;
   opt_type o1;
@@ -307,7 +307,7 @@ TYPED_TEST(optTest, copyAssignmentEmptyForEmpty)
   EXPECT_EQ(this->other_value, o2.value_or(this->other_value));
 }
 
-TYPED_TEST(optTest, copyAssignmentNotEmptyForEmpty)
+TYPED_TEST(optTyped, copyAssignmentNotEmptyForEmpty)
 {
   using opt_type = typename TestFixture::type;
   opt_type o1{this->value};
@@ -320,7 +320,7 @@ TYPED_TEST(optTest, copyAssignmentNotEmptyForEmpty)
   EXPECT_EQ(this->value, o2.value_or(this->other_value));
 }
 
-TYPED_TEST(optTest, copyAssignmentEmptyForNotEmpty)
+TYPED_TEST(optTyped, copyAssignmentEmptyForNotEmpty)
 {
   using opt_type = typename TestFixture::type;
   opt_type o1;
@@ -332,7 +332,7 @@ TYPED_TEST(optTest, copyAssignmentEmptyForNotEmpty)
   EXPECT_EQ(this->other_value, o2.value_or(this->other_value));
 }
 
-TYPED_TEST(optTest, copyAssignmentNotEmptyForNotEmpty)
+TYPED_TEST(optTyped, copyAssignmentNotEmptyForNotEmpty)
 {
   using opt_type = typename TestFixture::type;
   opt_type o1{this->value};
@@ -345,7 +345,7 @@ TYPED_TEST(optTest, copyAssignmentNotEmptyForNotEmpty)
   EXPECT_EQ(this->value, o2.value_or(this->other_value));
 }
 
-TYPED_TEST(optTest, moveAssignmentEmptyForEmpty)
+TYPED_TEST(optTyped, moveAssignmentEmptyForEmpty)
 {
   using opt_type = typename TestFixture::type;
   opt_type o1;
@@ -357,7 +357,7 @@ TYPED_TEST(optTest, moveAssignmentEmptyForEmpty)
   EXPECT_EQ(this->other_value, o2.value_or(this->other_value));
 }
 
-TYPED_TEST(optTest, moveAssignmentNotEmptyForEmpty)
+TYPED_TEST(optTyped, moveAssignmentNotEmptyForEmpty)
 {
   using opt_type = typename TestFixture::type;
   opt_type o1{this->value};
@@ -370,7 +370,7 @@ TYPED_TEST(optTest, moveAssignmentNotEmptyForEmpty)
   EXPECT_EQ(this->value, o2.value_or(this->other_value));
 }
 
-TYPED_TEST(optTest, moveAssignmentEmptyForNotEmpty)
+TYPED_TEST(optTyped, moveAssignmentEmptyForNotEmpty)
 {
   using opt_type = typename TestFixture::type;
   opt_type o1;
@@ -382,7 +382,7 @@ TYPED_TEST(optTest, moveAssignmentEmptyForNotEmpty)
   EXPECT_EQ(this->other_value, o2.value_or(this->other_value));
 }
 
-TYPED_TEST(optTest, moveAssignmentNotEmptyForNotEmpty)
+TYPED_TEST(optTyped, moveAssignmentNotEmptyForNotEmpty)
 {
   using opt_type = typename TestFixture::type;
   opt_type o1{this->value};
@@ -395,7 +395,7 @@ TYPED_TEST(optTest, moveAssignmentNotEmptyForNotEmpty)
   EXPECT_EQ(this->value, o2.value_or(this->other_value));
 }
 
-TYPED_TEST(optTest, otherTypeCopyAssignmentEmptyForEmpty)
+TYPED_TEST(optTyped, otherTypeCopyAssignmentEmptyForEmpty)
 {
   using opt_type = typename TestFixture::type;
   using other_opt_type = opt<typename TestFixture::traits::convertible_type, typename TestFixture::traits::convertible_policy_type>;
@@ -412,7 +412,7 @@ TYPED_TEST(optTest, otherTypeCopyAssignmentEmptyForEmpty)
   EXPECT_EQ(this->other_value, o2.value_or(this->other_value));
 }
 
-TYPED_TEST(optTest, otherTypeCopyAssignmentNotEmptyForEmpty)
+TYPED_TEST(optTyped, otherTypeCopyAssignmentNotEmptyForEmpty)
 {
   using opt_type = typename TestFixture::type;
   using other_opt_type = opt<typename TestFixture::traits::convertible_type, typename TestFixture::traits::convertible_policy_type>;
@@ -431,7 +431,7 @@ TYPED_TEST(optTest, otherTypeCopyAssignmentNotEmptyForEmpty)
   EXPECT_EQ(this->value, o2.value_or(this->other_value));
 }
 
-TYPED_TEST(optTest, otherTypeCopyAssignmentEmptyForNotEmpty)
+TYPED_TEST(optTyped, otherTypeCopyAssignmentEmptyForNotEmpty)
 {
   using opt_type = typename TestFixture::type;
   using other_opt_type = opt<typename TestFixture::traits::convertible_type, typename TestFixture::traits::convertible_policy_type>;
@@ -448,7 +448,7 @@ TYPED_TEST(optTest, otherTypeCopyAssignmentEmptyForNotEmpty)
   EXPECT_EQ(this->other_value, o2.value_or(this->other_value));
 }
 
-TYPED_TEST(optTest, otherTypeCopyAssignmentNotEmptyForNotEmpty)
+TYPED_TEST(optTyped, otherTypeCopyAssignmentNotEmptyForNotEmpty)
 {
   using opt_type = typename TestFixture::type;
   using other_opt_type = opt<typename TestFixture::traits::convertible_type, typename TestFixture::traits::convertible_policy_type>;
@@ -467,7 +467,7 @@ TYPED_TEST(optTest, otherTypeCopyAssignmentNotEmptyForNotEmpty)
   EXPECT_EQ(this->value, o2.value_or(this->other_value));
 }
 
-TYPED_TEST(optTest, otherTypeMoveAssignmentEmptyForEmpty)
+TYPED_TEST(optTyped, otherTypeMoveAssignmentEmptyForEmpty)
 {
   using opt_type = typename TestFixture::type;
   using other_opt_type = opt<typename TestFixture::traits::convertible_type, typename TestFixture::traits::convertible_policy_type>;
@@ -480,7 +480,7 @@ TYPED_TEST(optTest, otherTypeMoveAssignmentEmptyForEmpty)
   EXPECT_EQ(this->other_value, o2.value_or(this->other_value));
 }
 
-TYPED_TEST(optTest, otherTypeMoveAssignmentNotEmptyForEmpty)
+TYPED_TEST(optTyped, otherTypeMoveAssignmentNotEmptyForEmpty)
 {
   using opt_type = typename TestFixture::type;
   using other_opt_type = opt<typename TestFixture::traits::convertible_type, typename TestFixture::traits::convertible_policy_type>;
@@ -494,7 +494,7 @@ TYPED_TEST(optTest, otherTypeMoveAssignmentNotEmptyForEmpty)
   EXPECT_EQ(this->value, o2.value_or(this->other_value));
 }
 
-TYPED_TEST(optTest, otherTypeMoveAssignmentEmptyForNotEmpty)
+TYPED_TEST(optTyped, otherTypeMoveAssignmentEmptyForNotEmpty)
 {
   using opt_type = typename TestFixture::type;
   using other_opt_type = opt<typename TestFixture::traits::convertible_type, typename TestFixture::traits::convertible_policy_type>;
@@ -507,7 +507,7 @@ TYPED_TEST(optTest, otherTypeMoveAssignmentEmptyForNotEmpty)
   EXPECT_EQ(this->other_value, o2.value_or(this->other_value));
 }
 
-TYPED_TEST(optTest, otherTypeMoveAssignmentNotEmptyForNotEmpty)
+TYPED_TEST(optTyped, otherTypeMoveAssignmentNotEmptyForNotEmpty)
 {
   using opt_type = typename TestFixture::type;
   using other_opt_type = opt<typename TestFixture::traits::convertible_type, typename TestFixture::traits::convertible_policy_type>;
@@ -521,7 +521,7 @@ TYPED_TEST(optTest, otherTypeMoveAssignmentNotEmptyForNotEmpty)
   EXPECT_EQ(this->value, o2.value_or(this->other_value));
 }
 
-TYPED_TEST(optTest, valueAssignmentForEmpty)
+TYPED_TEST(optTyped, valueAssignmentForEmpty)
 {
   using opt_type = typename TestFixture::type;
   opt_type o;
@@ -533,7 +533,7 @@ TYPED_TEST(optTest, valueAssignmentForEmpty)
   EXPECT_EQ(this->value, o.value_or(this->other_value));
 }
 
-TYPED_TEST(optTest, valueAssignmentForNotEmpty)
+TYPED_TEST(optTyped, valueAssignmentForNotEmpty)
 {
   using opt_type = typename TestFixture::type;
   opt_type o{this->other_value};
@@ -545,7 +545,7 @@ TYPED_TEST(optTest, valueAssignmentForNotEmpty)
   EXPECT_EQ(this->value, o.value_or(this->other_value));
 }
 
-TYPED_TEST(optTest, swapEmptyWithEmpty)
+TYPED_TEST(optTyped, swapEmptyWithEmpty)
 {
   using opt_type = typename TestFixture::type;
   opt_type o1;
@@ -561,7 +561,7 @@ TYPED_TEST(optTest, swapEmptyWithEmpty)
   EXPECT_EQ(this->other_value, o2.value_or(this->other_value));
 }
 
-TYPED_TEST(optTest, swapNotEmptyWithEmpty)
+TYPED_TEST(optTyped, swapNotEmptyWithEmpty)
 {
   using opt_type = typename TestFixture::type;
   opt_type o1{this->value};
@@ -578,7 +578,7 @@ TYPED_TEST(optTest, swapNotEmptyWithEmpty)
   EXPECT_EQ(this->value, o2.value_or(this->other_value));
 }
 
-TYPED_TEST(optTest, swapEmptyWithNotEmpty)
+TYPED_TEST(optTyped, swapEmptyWithNotEmpty)
 {
   using opt_type = typename TestFixture::type;
   opt_type o1;
@@ -595,7 +595,7 @@ TYPED_TEST(optTest, swapEmptyWithNotEmpty)
   EXPECT_EQ(this->other_value, o2.value_or(this->other_value));
 }
 
-TYPED_TEST(optTest, swapNotEmptyWithNotEmpty)
+TYPED_TEST(optTyped, swapNotEmptyWithNotEmpty)
 {
   using opt_type = typename TestFixture::type;
   opt_type o1{this->value};
@@ -611,4 +611,220 @@ TYPED_TEST(optTest, swapNotEmptyWithNotEmpty)
   EXPECT_EQ(this->value, *o2);
   EXPECT_EQ(this->value, o2.value());
   EXPECT_EQ(this->value, o2.value_or(this->other_value));
+}
+
+TEST(optCompare, bothNotEmptyEqual)
+{
+  using opt_int = opt<int, opt_null_value_policy<int, -1>>;
+  opt_int i1{1}, i2{1};
+  EXPECT_TRUE(i1 == i2);
+  EXPECT_FALSE(i1 != i2);
+  EXPECT_FALSE(i1 < i2);
+  EXPECT_FALSE(i1 > i2);
+  EXPECT_TRUE(i1 <= i2);
+  EXPECT_TRUE(i1 >= i2);
+}
+
+TEST(optCompare, bothNotEmptyLess)
+{
+  using opt_int = opt<int, opt_null_value_policy<int, -1>>;
+  opt_int i1{1}, i2{2};
+  EXPECT_FALSE(i1 == i2);
+  EXPECT_TRUE(i1 != i2);
+  EXPECT_TRUE(i1 < i2);
+  EXPECT_FALSE(i1 > i2);
+  EXPECT_TRUE(i1 <= i2);
+  EXPECT_FALSE(i1 >= i2);
+}
+
+TEST(optCompare, bothNotEmptyGreater)
+{
+  using opt_int = opt<int, opt_null_value_policy<int, -1>>;
+  opt_int i1{2}, i2{1};
+  EXPECT_FALSE(i1 == i2);
+  EXPECT_TRUE(i1 != i2);
+  EXPECT_FALSE(i1 < i2);
+  EXPECT_TRUE(i1 > i2);
+  EXPECT_FALSE(i1 <= i2);
+  EXPECT_TRUE(i1 >= i2);
+}
+
+TEST(optCompare, bothEmpty)
+{
+  using opt_int = opt<int, opt_null_value_policy<int, -1>>;
+  opt_int i1, i2;
+  EXPECT_TRUE(i1 == i2);
+  EXPECT_FALSE(i1 != i2);
+  EXPECT_FALSE(i1 < i2);
+  EXPECT_FALSE(i1 > i2);
+  EXPECT_TRUE(i1 <= i2);
+  EXPECT_TRUE(i1 >= i2);
+}
+
+TEST(optCompare, emptyNotEmpty)
+{
+  using opt_int = opt<int, opt_null_value_policy<int, -1>>;
+  opt_int i1, i2{1};
+  EXPECT_FALSE(i1 == i2);
+  EXPECT_TRUE(i1 != i2);
+  EXPECT_TRUE(i1 < i2);
+  EXPECT_FALSE(i1 > i2);
+  EXPECT_TRUE(i1 <= i2);
+  EXPECT_FALSE(i1 >= i2);
+}
+
+TEST(optCompare, notEmptyEmpty)
+{
+  using opt_int = opt<int, opt_null_value_policy<int, -1>>;
+  opt_int i1{1}, i2;
+  EXPECT_FALSE(i1 == i2);
+  EXPECT_TRUE(i1 != i2);
+  EXPECT_FALSE(i1 < i2);
+  EXPECT_TRUE(i1 > i2);
+  EXPECT_FALSE(i1 <= i2);
+  EXPECT_TRUE(i1 >= i2);
+}
+
+TEST(optCompare, optNotEmptyValueEqual)
+{
+  using opt_int = opt<int, opt_null_value_policy<int, -1>>;
+  opt_int i{1};
+  EXPECT_TRUE(i == 1);
+  EXPECT_FALSE(i != 1);
+  EXPECT_FALSE(i < 1);
+  EXPECT_FALSE(i > 1);
+  EXPECT_TRUE(i <= 1);
+  EXPECT_TRUE(i >= 1);
+}
+
+TEST(optCompare, optNotEmptyValueLess)
+{
+  using opt_int = opt<int, opt_null_value_policy<int, -1>>;
+  opt_int i{1};
+  EXPECT_FALSE(i == 2);
+  EXPECT_TRUE(i != 2);
+  EXPECT_TRUE(i < 2);
+  EXPECT_FALSE(i > 2);
+  EXPECT_TRUE(i <= 2);
+  EXPECT_FALSE(i >= 2);
+}
+
+TEST(optCompare, optNotEmptyValueGreater)
+{
+  using opt_int = opt<int, opt_null_value_policy<int, -1>>;
+  opt_int i{2};
+  EXPECT_FALSE(i == 1);
+  EXPECT_TRUE(i != 1);
+  EXPECT_FALSE(i < 1);
+  EXPECT_TRUE(i > 1);
+  EXPECT_FALSE(i <= 1);
+  EXPECT_TRUE(i >= 1);
+}
+
+TEST(optCompare, optEmptyValue)
+{
+  using opt_int = opt<int, opt_null_value_policy<int, -1>>;
+  opt_int i;
+  EXPECT_FALSE(i == 1);
+  EXPECT_TRUE(i != 1);
+  EXPECT_TRUE(i < 1);
+  EXPECT_FALSE(i > 1);
+  EXPECT_TRUE(i <= 1);
+  EXPECT_FALSE(i >= 1);
+}
+
+TEST(optCompare, valueOptNotEmptyEqual)
+{
+  using opt_int = opt<int, opt_null_value_policy<int, -1>>;
+  opt_int i{1};
+  EXPECT_TRUE(1 == i);
+  EXPECT_FALSE(1 != i);
+  EXPECT_FALSE(1 < i);
+  EXPECT_FALSE(1 > i);
+  EXPECT_TRUE(1 <= i);
+  EXPECT_TRUE(1 >= i);
+}
+
+TEST(optCompare, valueOptNotEmptyLess)
+{
+  using opt_int = opt<int, opt_null_value_policy<int, -1>>;
+  opt_int i{2};
+  EXPECT_FALSE(1 == i);
+  EXPECT_TRUE(1 != i);
+  EXPECT_TRUE(1 < i);
+  EXPECT_FALSE(1 > i);
+  EXPECT_TRUE(1 <= i);
+  EXPECT_FALSE(1 >= i);
+}
+
+TEST(optCompare, valueOptNotEmptyGreater)
+{
+  using opt_int = opt<int, opt_null_value_policy<int, -1>>;
+  opt_int i{1};
+  EXPECT_FALSE(2 == i);
+  EXPECT_TRUE(2 != i);
+  EXPECT_FALSE(2 < i);
+  EXPECT_TRUE(2 > i);
+  EXPECT_FALSE(2 <= i);
+  EXPECT_TRUE(2 >= i);
+}
+
+TEST(optCompare, valueOptEmpty)
+{
+  using opt_int = opt<int, opt_null_value_policy<int, -1>>;
+  opt_int i;
+  EXPECT_FALSE(1 == i);
+  EXPECT_TRUE(1 != i);
+  EXPECT_FALSE(1 < i);
+  EXPECT_TRUE(1 > i);
+  EXPECT_FALSE(1 <= i);
+  EXPECT_TRUE(1 >= i);
+}
+
+TEST(optCompare, optEmptyNullopt)
+{
+  using opt_int = opt<int, opt_null_value_policy<int, -1>>;
+  opt_int i;
+  EXPECT_TRUE(i == nullopt);
+  EXPECT_FALSE(i != nullopt);
+  EXPECT_FALSE(i < nullopt);
+  EXPECT_FALSE(i > nullopt);
+  EXPECT_TRUE(i <= nullopt);
+  EXPECT_TRUE(i >= nullopt);
+}
+
+TEST(optCompare, optNotEmptyNullopt)
+{
+  using opt_int = opt<int, opt_null_value_policy<int, -1>>;
+  opt_int i{1};
+  EXPECT_FALSE(i == nullopt);
+  EXPECT_TRUE(i != nullopt);
+  EXPECT_FALSE(i < nullopt);
+  EXPECT_TRUE(i > nullopt);
+  EXPECT_FALSE(i <= nullopt);
+  EXPECT_TRUE(i >= nullopt);
+}
+
+TEST(optCompare, nulloptOptEmpty)
+{
+  using opt_int = opt<int, opt_null_value_policy<int, -1>>;
+  opt_int i;
+  EXPECT_TRUE(nullopt == i);
+  EXPECT_FALSE(nullopt != i);
+  EXPECT_FALSE(nullopt < i);
+  EXPECT_FALSE(nullopt > i);
+  EXPECT_TRUE(nullopt <= i);
+  EXPECT_TRUE(nullopt >= i);
+}
+
+TEST(optCompare, nulloptOptNotEmpty)
+{
+  using opt_int = opt<int, opt_null_value_policy<int, -1>>;
+  opt_int i{1};
+  EXPECT_FALSE(nullopt == i);
+  EXPECT_TRUE(nullopt != i);
+  EXPECT_TRUE(nullopt < i);
+  EXPECT_FALSE(nullopt > i);
+  EXPECT_TRUE(nullopt <= i);
+  EXPECT_FALSE(nullopt >= i);
 }
