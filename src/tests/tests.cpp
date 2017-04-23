@@ -124,11 +124,21 @@ TYPED_TEST(optTyped, defaultConstructor)
 TYPED_TEST(optTyped, defaultConstructorRvalue)
 {
   using opt_type = typename TestFixture::type;
-  EXPECT_FALSE(opt_type{});
-  EXPECT_FALSE(opt_type{}.has_value());
-  EXPECT_THROW(opt_type{}.value(), bad_optional_access);
-  EXPECT_EQ(this->other_value, opt_type{}.value_or(this->other_value));
+  auto make = []{ return opt_type{}; };
+  EXPECT_FALSE(make());
+  EXPECT_FALSE(make().has_value());
+  EXPECT_THROW(make().value(), bad_optional_access);
+  EXPECT_EQ(this->other_value, make().value_or(this->other_value));
+}
 
+TYPED_TEST(optTyped, defaultConstructorConstRvalue)
+{
+  using opt_type = typename TestFixture::type;
+  auto make = []() -> const opt_type { return opt_type{}; };
+  EXPECT_FALSE(make());
+  EXPECT_FALSE(make().has_value());
+  EXPECT_THROW(make().value(), bad_optional_access);
+  EXPECT_EQ(this->other_value, make().value_or(this->other_value));
 }
 
 TYPED_TEST(optTyped, nulloptConstructor)
@@ -186,11 +196,23 @@ TYPED_TEST(optTyped, valueConstructor2)
 TYPED_TEST(optTyped, valueConstructorRvalue)
 {
   using opt_type = typename TestFixture::type;
-  EXPECT_TRUE(opt_type{this->value});
-  EXPECT_TRUE(opt_type{this->value}.has_value());
-  EXPECT_EQ(this->value, *opt_type{this->value});
-  EXPECT_EQ(this->value, opt_type{this->value}.value());
-  EXPECT_EQ(this->value, opt_type{this->value}.value_or(this->other_value));
+  auto make = [&]{ return opt_type{this->value}; };
+  EXPECT_TRUE(make());
+  EXPECT_TRUE(make().has_value());
+  EXPECT_EQ(this->value, *make());
+  EXPECT_EQ(this->value, make().value());
+  EXPECT_EQ(this->value, make().value_or(this->other_value));
+}
+
+TYPED_TEST(optTyped, valueConstructorConstRvalue)
+{
+  using opt_type = typename TestFixture::type;
+  auto make = [&]() -> const opt_type { return opt_type{this->value}; };
+  EXPECT_TRUE(make());
+  EXPECT_TRUE(make().has_value());
+  EXPECT_EQ(this->value, *make());
+  EXPECT_EQ(this->value, make().value());
+  EXPECT_EQ(this->value, make().value_or(this->other_value));
 }
 
 TYPED_TEST(optTyped, inPlaceConstructor)
