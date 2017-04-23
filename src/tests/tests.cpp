@@ -114,14 +114,14 @@ namespace {
   };
 
   template<>
-  struct opt_traits<int> {
-    static_assert(std::is_constructible<int, long&&>::value);
-    static_assert(std::is_convertible<long&&, int>::value);
+  struct opt_traits<long> {
+    static_assert(std::is_constructible<long, int&&>::value);
+    static_assert(std::is_convertible<int&&, long>::value);
 
-    static constexpr int value_1 = 123;
-    static constexpr int value_2 = 999;
+    static constexpr long value_1 = 123;
+    static constexpr long value_2 = 999;
 
-    using other_type = long;
+    using other_type = int;
     using other_policy_type = opt_null_value_policy<other_type, -1>;
     static constexpr other_type other_value_1 = 123;
     static constexpr other_type other_value_2 = 999;
@@ -165,7 +165,7 @@ namespace {
     const typename traits::other_type other_value_1 = traits::other_value_1;
     const typename traits::other_type other_value_2 = traits::other_value_2;
   };
-  using test_types = ::testing::Types<opt<bool>, opt<weekday>, opt<int, opt_null_value_policy<int, -1>>, opt<double, opt_null_type_policy<double, NullFloating<double>>>>;
+  using test_types = ::testing::Types<opt<bool>, opt<weekday>, opt<long, opt_null_value_policy<long, -1>>, opt<double, opt_null_type_policy<double, NullFloating<double>>>>;
   TYPED_TEST_CASE(optTyped, test_types);
 
 }
