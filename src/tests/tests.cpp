@@ -84,12 +84,13 @@ const my_bool opt_default_policy<my_bool>::null_value_ = opt_default_policy<my_b
 template<>
 struct opt_default_policy<weekday> {
   static constexpr bool has_value(weekday value) noexcept { return value.value_ != null_underlying_value_; }
-  static constexpr weekday null_value() noexcept          { return null_value_; }
+  static const weekday null_value() noexcept              { return null_value_; }
 private:
   using null_underlying_type_ = weekday::underlying_type;
   static constexpr null_underlying_type_ null_underlying_value_ = std::numeric_limits<null_underlying_type_>::max();
-  static constexpr weekday null_value_{std::numeric_limits<decltype(std::declval<weekday>().value_)>::max()};
+  static const weekday null_value_;
 };
+const weekday opt_default_policy<weekday>::null_value_{opt_default_policy<weekday>::null_underlying_value_};
 
 namespace {
 
@@ -109,9 +110,11 @@ namespace {
 
     using other_type = my_bool;
     using other_policy_type = opt_default_policy<other_type>;
-    static constexpr other_type other_value_1 = true;
-    static constexpr other_type other_value_2 = false;
+    static const other_type other_value_1;
+    static const other_type other_value_2;
   };
+  constexpr opt_traits<bool>::other_type opt_traits<bool>::other_value_1 = true;
+  constexpr opt_traits<bool>::other_type opt_traits<bool>::other_value_2 = false;
 
   template<>
   struct opt_traits<long> {
@@ -132,14 +135,16 @@ namespace {
     static_assert(std::is_constructible<weekday, std::int8_t&&>::value);
     static_assert(!std::is_convertible<std::int8_t&&, weekday>::value);
 
-    static constexpr weekday value_1{0};
-    static constexpr weekday value_2{3};
+    static const weekday value_1;
+    static const weekday value_2;
 
     using other_type = decltype(std::declval<weekday>().value_);
     using other_policy_type = opt_null_value_policy<other_type, -1>;
     static constexpr other_type other_value_1 = 0;
     static constexpr other_type other_value_2 = 3;
   };
+  constexpr weekday opt_traits<weekday>::value_1{0};
+  constexpr weekday opt_traits<weekday>::value_2{3};
 
   template<>
   struct opt_traits<double> {
