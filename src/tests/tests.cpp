@@ -28,32 +28,39 @@ template class opt<int, opt_null_value_policy<int, -1>>;
 
 namespace {
 
-using namespace std::experimental;
+  using namespace std::experimental;
 
-struct my_bool {
-  bool value_;
-  my_bool() = default;
-  constexpr my_bool(bool v) noexcept: value_{v} {}
-  constexpr operator bool() const noexcept { return value_; }
-};
+  struct my_bool {
+    bool value_;
+    my_bool() = default;
+    constexpr my_bool(bool v) noexcept : value_{v} {}
+    constexpr operator bool() const noexcept { return value_; }
+  };
 
-struct weekday {
-  using underlying_type = std::int8_t;
-  underlying_type value_;  // 0 - 6
-  constexpr explicit weekday(underlying_type v) noexcept: value_{v} {}
-  constexpr weekday& operator=(underlying_type v) noexcept { value_ = v; return *this; }
-  underlying_type get() const { return value_; }
-};
-constexpr bool operator==(weekday lhs, weekday rhs) noexcept { return lhs.value_ == rhs.value_; }
-constexpr bool operator==(weekday::underlying_type lhs, weekday rhs) noexcept { return lhs == rhs.value_; }
-constexpr bool operator==(weekday lhs, weekday::underlying_type rhs) noexcept { return lhs.value_ == rhs; }
-
+  struct weekday {
+    using underlying_type = std::int8_t;
+    underlying_type value_;  // 0 - 6
+    constexpr explicit weekday(underlying_type v) noexcept : value_{v} {}
+    constexpr weekday& operator=(underlying_type v) noexcept
+    {
+      value_ = v;
+      return *this;
+    }
+    underlying_type get() const { return value_; }
+  };
+  constexpr bool operator==(weekday lhs, weekday rhs) noexcept { return lhs.value_ == rhs.value_; }
+  constexpr bool operator==(weekday::underlying_type lhs, weekday rhs) noexcept { return lhs == rhs.value_; }
+  constexpr bool operator==(weekday lhs, weekday::underlying_type rhs) noexcept { return lhs.value_ == rhs; }
 }
 
 template<>
 struct opt_default_policy<bool> {
-  static bool has_value(bool value) noexcept { return reinterpret_cast<null_type_&>(value) != reinterpret_cast<const null_type_&>(null_value_); }
-  static bool null_value() noexcept          { return null_value_; }
+  static bool has_value(bool value) noexcept
+  {
+    return reinterpret_cast<null_type_&>(value) != reinterpret_cast<const null_type_&>(null_value_);
+  }
+  static bool null_value() noexcept { return null_value_; }
+
 private:
   using null_type_ = std::int8_t;
   static bool make_null()
@@ -68,8 +75,12 @@ const bool opt_default_policy<bool>::null_value_ = opt_default_policy<bool>::mak
 
 template<>
 struct opt_default_policy<my_bool> {
-  static bool has_value(my_bool value) noexcept { return reinterpret_cast<null_type_&>(value.value_) != reinterpret_cast<const null_type_&>(null_value_.value_); }
-  static my_bool null_value() noexcept          { return null_value_; }
+  static bool has_value(my_bool value) noexcept
+  {
+    return reinterpret_cast<null_type_&>(value.value_) != reinterpret_cast<const null_type_&>(null_value_.value_);
+  }
+  static my_bool null_value() noexcept { return null_value_; }
+
 private:
   using null_type_ = std::int8_t;
   static my_bool make_null()
@@ -85,6 +96,7 @@ const my_bool opt_default_policy<my_bool>::null_value_ = opt_default_policy<my_b
 template<>
 struct opt_default_policy<weekday> {
   static const weekday null_value() noexcept { return null_value_; }
+
 private:
   using null_underlying_type_ = weekday::underlying_type;
   static constexpr null_underlying_type_ null_underlying_value_ = std::numeric_limits<null_underlying_type_>::max();
@@ -95,7 +107,9 @@ const weekday opt_default_policy<weekday>::null_value_{opt_default_policy<weekda
 namespace {
 
   template<typename T>
-  struct null_floating { static constexpr T value = 0.0f; };
+  struct null_floating {
+    static constexpr T value = 0.0f;
+  };
 
   template<typename T>
   struct opt_traits;
@@ -170,9 +184,9 @@ namespace {
     const typename traits::other_type other_value_1 = traits::other_value_1;
     const typename traits::other_type other_value_2 = traits::other_value_2;
   };
-  using test_types = ::testing::Types<opt<bool>, opt<weekday>, opt<long, opt_null_value_policy<long, -1>>, opt<double, opt_null_type_policy<double, null_floating<double>>>>;
+  using test_types = ::testing::Types<opt<bool>, opt<weekday>, opt<long, opt_null_value_policy<long, -1>>,
+                                      opt<double, opt_null_type_policy<double, null_floating<double>>>>;
   TYPED_TEST_CASE(optTyped, test_types);
-
 }
 
 TYPED_TEST(optTyped, defaultConstructor)
@@ -194,7 +208,7 @@ TYPED_TEST(optTyped, defaultConstructor)
 TYPED_TEST(optTyped, defaultConstructorRvalue)
 {
   using opt_type = typename TestFixture::type;
-  auto make = []{ return opt_type{}; };
+  auto make = [] { return opt_type{}; };
   EXPECT_FALSE(make());
   EXPECT_FALSE(make().has_value());
   EXPECT_THROW(make().value(), bad_optional_access);
@@ -284,7 +298,7 @@ TYPED_TEST(optTyped, valueConstructorOther1)
 TYPED_TEST(optTyped, valueConstructorRvalue)
 {
   using opt_type = typename TestFixture::type;
-  auto make = [&]{ return opt_type{this->value_1}; };
+  auto make = [&] { return opt_type{this->value_1}; };
   EXPECT_TRUE(make());
   EXPECT_TRUE(make().has_value());
   EXPECT_EQ(this->value_1, *make());
@@ -321,7 +335,7 @@ TYPED_TEST(optTyped, inPlaceConstructor)
   EXPECT_EQ(this->value_1, co.value_or(this->value_2));
 }
 
-//TEST(opt, inPlaceConstructorInitList)
+// TEST(opt, inPlaceConstructorInitList)
 //{
 //  null_value_opt<int, -1> o{in_place, {123}};
 //  EXPECT_TRUE(o);
@@ -791,7 +805,7 @@ TEST(opt, dereferenceOperator)
 TEST(opt, dereferenceOperatorRvalue)
 {
   weekday::underlying_type d{1};
-  auto make = [&]{ return opt<weekday>{d}; };
+  auto make = [&] { return opt<weekday>{d}; };
   EXPECT_TRUE(make());
   EXPECT_TRUE(make().has_value());
   EXPECT_EQ(d, *make());

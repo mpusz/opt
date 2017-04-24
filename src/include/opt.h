@@ -91,27 +91,39 @@ public:
 
   template<typename U, typename P,
            detail::Requires<std::is_constructible<T, const U&>,
-                            std::disjunction<std::is_same<std::decay_t<T>, bool>, std::negation<detail::constructs_or_converts_from_opt<T, U, P>>>> = true,
+                            std::disjunction<std::is_same<std::decay_t<T>, bool>,
+                                             std::negation<detail::constructs_or_converts_from_opt<T, U, P>>>> = true,
            detail::Requires<std::negation<std::is_convertible<const U&, T>>> = true>
-  explicit opt(const opt<U, P>& other) : value_{other.has_value() ? T{*other} : traits::null_value()} {}
+  explicit opt(const opt<U, P>& other) : value_{other.has_value() ? T{*other} : traits::null_value()}
+  {
+  }
 
   template<typename U, typename P,
            detail::Requires<std::is_constructible<T, const U&>,
-                            std::disjunction<std::is_same<std::decay_t<T>, bool>, std::negation<detail::constructs_or_converts_from_opt<T, U, P>>>> = true,
+                            std::disjunction<std::is_same<std::decay_t<T>, bool>,
+                                             std::negation<detail::constructs_or_converts_from_opt<T, U, P>>>> = true,
            detail::Requires<std::is_convertible<const U&, T>> = true>
-  opt(const opt<U, P>& other) : value_{other.has_value() ? T{*other} : traits::null_value()} {}
+  opt(const opt<U, P>& other) : value_{other.has_value() ? T{*other} : traits::null_value()}
+  {
+  }
 
   template<typename U, typename P,
            detail::Requires<std::is_constructible<T, U&&>,
-                            std::disjunction<std::is_same<std::decay_t<T>, bool>, std::negation<detail::constructs_or_converts_from_opt<T, U, P>>>> = true,
+                            std::disjunction<std::is_same<std::decay_t<T>, bool>,
+                                             std::negation<detail::constructs_or_converts_from_opt<T, U, P>>>> = true,
            detail::Requires<std::negation<std::is_convertible<U&&, T>>> = true>
-  explicit constexpr opt(opt<U, P>&& other) : value_{other.has_value() ? T{std::move(*other)} : traits::null_value()} {}
+  explicit constexpr opt(opt<U, P>&& other) : value_{other.has_value() ? T{std::move(*other)} : traits::null_value()}
+  {
+  }
 
   template<typename U, typename P,
            detail::Requires<std::is_constructible<T, U&&>,
-                            std::disjunction<std::is_same<std::decay_t<T>, bool>, std::negation<detail::constructs_or_converts_from_opt<T, U, P>>>> = true,
+                            std::disjunction<std::is_same<std::decay_t<T>, bool>,
+                                             std::negation<detail::constructs_or_converts_from_opt<T, U, P>>>> = true,
            detail::Requires<std::is_convertible<U&&, T>> = true>
-  constexpr opt(opt<U, P>&& other) : value_{other.has_value() ? T{std::move(*other)} : traits::null_value()} {}
+  constexpr opt(opt<U, P>&& other) : value_{other.has_value() ? T{std::move(*other)} : traits::null_value()}
+  {
+  }
 
   // assignment
   opt& operator=(std::experimental::nullopt_t) noexcept
@@ -267,15 +279,15 @@ template<typename T, typename P, typename U> constexpr bool operator>=(const U& 
 // specialized algorithms
 namespace std {
 
-template<typename T, typename P>
-inline void swap(opt<T, P>& lhs, opt<T, P>& rhs) noexcept(noexcept(lhs.swap(rhs)))
-{
-  lhs.swap(rhs);
-}
+  template<typename T, typename P>
+  inline void swap(opt<T, P>& lhs, opt<T, P>& rhs) noexcept(noexcept(lhs.swap(rhs)))
+  {
+    lhs.swap(rhs);
+  }
 
-// hash support
-// template<typename T>
-// struct hash;
-// template<typename T, typename P>
-// struct hash<opt<T, P>>;
+  // hash support
+  // template<typename T>
+  // struct hash;
+  // template<typename T, typename P>
+  // struct hash<opt<T, P>>;
 }

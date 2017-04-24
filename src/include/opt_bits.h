@@ -30,66 +30,68 @@ class opt;
 
 namespace detail {
 
-template <typename...>
-using void_t = void;
+  template<typename...>
+  using void_t = void;
 
-template<typename T, typename P, typename Result, template <class, class> class Operation, class = void>
-struct has_operation : std::false_type {
-};
+  template<typename T, typename P, typename Result, template<class, class> class Operation, class = void>
+  struct has_operation : std::false_type {
+  };
 
-template<typename T, typename P, typename Result, template<class, class> class Operation>
-struct has_operation<T, P, Result, Operation, void_t<Operation<T, P>>> : std::is_same<Operation<T, P>, Result> {
-};
+  template<typename T, typename P, typename Result, template<class, class> class Operation>
+  struct has_operation<T, P, Result, Operation, void_t<Operation<T, P>>> : std::is_same<Operation<T, P>, Result> {
+  };
 
-template <typename T, typename P> using has_value_t   = decltype(std::declval<P>().has_value(std::declval<T>()));
-template <typename T, typename P> using has_has_value = has_operation<T, P, bool, has_value_t>;
+  template<typename T, typename P>
+  using has_value_t = decltype(std::declval<P>().has_value(std::declval<T>()));
+  template<typename T, typename P>
+  using has_has_value = has_operation<T, P, bool, has_value_t>;
 
-template<typename T>
-struct is_opt : std::false_type {};
+  template<typename T>
+  struct is_opt : std::false_type {
+  };
 
-template<typename T, typename P>
-struct is_opt<opt<T, P>> : std::true_type {};
+  template<typename T, typename P>
+  struct is_opt<opt<T, P>> : std::true_type {
+  };
 
-template<typename... Args>
-using Requires = std::enable_if_t<std::conjunction<Args...>::value, bool>;
+  template<typename... Args>
+  using Requires = std::enable_if_t<std::conjunction<Args...>::value, bool>;
 
-template<typename T, typename U, typename P>
-using constructs_or_converts_from_opt =
-    std::disjunction<std::is_constructible<T, opt<U, P>&>, std::is_constructible<T, const opt<U, P>&>,
-                     std::is_constructible<T, opt<U, P>&&>, std::is_constructible<T, const opt<U, P>&&>,
-                     std::is_convertible<opt<U, P>&, T>, std::is_convertible<const opt<U, P>&, T>,
-                     std::is_convertible<opt<U, P>&&, T>, std::is_convertible<const opt<U, P>&&, T>>;
+  template<typename T, typename U, typename P>
+  using constructs_or_converts_from_opt =
+      std::disjunction<std::is_constructible<T, opt<U, P>&>, std::is_constructible<T, const opt<U, P>&>,
+                       std::is_constructible<T, opt<U, P>&&>, std::is_constructible<T, const opt<U, P>&&>,
+                       std::is_convertible<opt<U, P>&, T>, std::is_convertible<const opt<U, P>&, T>,
+                       std::is_convertible<opt<U, P>&&, T>, std::is_convertible<const opt<U, P>&&, T>>;
 
-template<typename T, typename U, typename P>
-using assigns_from_opt =
-    std::disjunction<std::is_assignable<T&, opt<U, P>&>, std::is_assignable<T&, const opt<U, P>&>,
-                     std::is_assignable<T&, opt<U, P>&&>, std::is_assignable<T&, const opt<U, P>&&>>;
+  template<typename T, typename U, typename P>
+  using assigns_from_opt =
+      std::disjunction<std::is_assignable<T&, opt<U, P>&>, std::is_assignable<T&, const opt<U, P>&>,
+                       std::is_assignable<T&, opt<U, P>&&>, std::is_assignable<T&, const opt<U, P>&&>>;
 
-template<typename Policy, typename T>
-constexpr bool has_value_impl(std::true_type, const T& value) noexcept(noexcept(Policy::has_value(std::declval<T>())))
-{
-  return Policy::has_value(value);
-}
+  template<typename Policy, typename T>
+  constexpr bool has_value_impl(std::true_type, const T& value) noexcept(noexcept(Policy::has_value(std::declval<T>())))
+  {
+    return Policy::has_value(value);
+  }
 
-template<typename Policy, typename T>
-constexpr bool has_value_impl(std::false_type, const T& value) noexcept(noexcept(Policy::null_value()))
-{
-  return !(value == Policy::null_value());
-}
+  template<typename Policy, typename T>
+  constexpr bool has_value_impl(std::false_type, const T& value) noexcept(noexcept(Policy::null_value()))
+  {
+    return !(value == Policy::null_value());
+  }
 
-template<typename T, typename Policy>
-struct opt_policy_traits {
-  // always calls Policy::null_value()
-  static constexpr auto null_value() noexcept(noexcept(Policy::null_value())) { return Policy::null_value(); }
+  template<typename T, typename Policy>
+  struct opt_policy_traits {
+    // always calls Policy::null_value()
+    static constexpr auto null_value() noexcept(noexcept(Policy::null_value())) { return Policy::null_value(); }
 
-  // calls Policy::has_value() if available, otherwise uses operator==() for comparison
-  static constexpr bool has_value(const T& value) noexcept(noexcept(has_value_impl<Policy>(has_has_value<T, Policy>{}, std::declval<T>())));
-};
+    // calls Policy::has_value() if available, otherwise uses operator==() for comparison
+    static constexpr bool has_value(const T& value) noexcept(noexcept(has_value_impl<Policy>(has_has_value<T, Policy>{},
+                                                                                             std::declval<T>())))
+    {
+      return has_value_impl<Policy>(detail::has_has_value<T, Policy>{}, value);
+    }
+  };
 
-template<typename T, typename Policy>
-constexpr bool opt_policy_traits<T, Policy>::has_value(const T& value) noexcept(noexcept(has_value_impl<Policy>(has_has_value<T, Policy>{}, std::declval<T>())))
-{
-  return has_value_impl<Policy>(detail::has_has_value<T, Policy>{}, value);
-}
-
-} // namespace detail
+}  // namespace detail
