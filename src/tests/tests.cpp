@@ -40,8 +40,9 @@ struct my_bool {
 struct weekday {
   using underlying_type = std::int8_t;
   underlying_type value_;  // 0 - 6
-  constexpr explicit weekday(std::int8_t v) noexcept: value_{v} {}
-  constexpr weekday& operator=(std::int8_t v) noexcept { value_ = v; return *this; }
+  constexpr explicit weekday(underlying_type v) noexcept: value_{v} {}
+  constexpr weekday& operator=(underlying_type v) noexcept { value_ = v; return *this; }
+  underlying_type get() const { return value_; }
 };
 constexpr bool operator==(weekday lhs, weekday rhs) noexcept { return lhs.value_ == rhs.value_; }
 constexpr bool operator==(weekday::underlying_type lhs, weekday rhs) noexcept { return lhs == rhs.value_; }
@@ -774,6 +775,42 @@ TYPED_TEST(optTyped, swapNotEmptyWithNotEmpty)
   EXPECT_EQ(this->value_1, *o2);
   EXPECT_EQ(this->value_1, o2.value());
   EXPECT_EQ(this->value_1, o2.value_or(this->value_2));
+}
+
+TEST(opt, dereferenceOperator)
+{
+  weekday::underlying_type d{1};
+  opt<weekday> w{d};
+  EXPECT_TRUE(w);
+  EXPECT_TRUE(w.has_value());
+  EXPECT_EQ(d, *w);
+  EXPECT_EQ(d, w.value());
+  EXPECT_EQ(d, w->get());
+  EXPECT_EQ(d, w.value_or(weekday::underlying_type{3}));
+}
+
+TEST(opt, dereferenceOperatorRvalue)
+{
+  weekday::underlying_type d{1};
+  auto make = [&]{ return opt<weekday>{d}; };
+  EXPECT_TRUE(make());
+  EXPECT_TRUE(make().has_value());
+  EXPECT_EQ(d, *make());
+  EXPECT_EQ(d, make().value());
+  EXPECT_EQ(d, make()->get());
+  EXPECT_EQ(d, make().value_or(weekday::underlying_type{3}));
+}
+
+TEST(opt, dereferenceOperatorConstRvalue)
+{
+  weekday::underlying_type d{1};
+  auto make = [&]() -> const opt<weekday> { return opt<weekday>{d}; };
+  EXPECT_TRUE(make());
+  EXPECT_TRUE(make().has_value());
+  EXPECT_EQ(d, *make());
+  EXPECT_EQ(d, make().value());
+  EXPECT_EQ(d, make()->get());
+  EXPECT_EQ(d, make().value_or(weekday::underlying_type{3}));
 }
 
 TEST(optCompare, bothNotEmptyEqual)
