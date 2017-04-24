@@ -12,40 +12,77 @@ the value is set or not. On the other hand type `T` should be a type that does n
 values from its underlying representation thus leaving a possibly to use one of them as a _Null_
 value that express emptiness of type `T`.
 
-By default it uses `opt_default_policy<T>` that can be specialized for type `T` to provide information
-which value is used to express emptiness.
+### `Policy` basic interface
 
-Policy class has a simple interface:
-
+`opt<T, Policy>` uses `Policy` class to provide all necessary information needed for proper class operation. The
+simplest interface of `Policy` class for type `my_type` that uses `my_type_null_value` as _Null_ value contains
+only one member function:
 ```
-template<typename T>
-struct MyOptPolicy {
-  constexpr static bool has_value(const T& value) noexcept;
-  constexpr static void reset(T& value) noexcept;
+struct my_opt_policy {
+  static constexpr my_type null_value() noexcept { return my_type_null_value; }
 };
+opt<my_type, my_opt_policy> my_opt_val;
+```
+- `null_value()` member function returns (by value or reference) special value of type `my_type` that should be
+   used by `opt<T, Policy>` as a special _Null_ value to mark emptiness.
+
+`opt<T, Policy>` by default uses `opt_default_policy<T>` that can be specialized for user's type `T` so above example
+may be refactored in the following way:
+```
+template<>
+struct opt_default_policy<my_type> {
+  static constexpr my_type null_value() noexcept { return my_type_null_value; }
+};
+opt<my_type> my_opt_val;
 ```
 
-- `has_value(const T& value)` function is should return `false` if `value == NullValue` or `true`
-otherwise,
-- `reset(T& value)` function sets `value` to `NullValue`.
+The latter solution is suggested for user's types that will always have the same special value used as _Null_ while
+the former should be used for builtin types like 'int' where the type can express different quantities thuse having
+different _Null_ special values (e.g. age, price, month, etc).
 
-2 additional policy types are provided:
+### `Policy` types provided with the library
+
+Beside already mentioned `opt_default_policy<T>` that can be specialized by the user for his/her type `my_type`,
+the library provides 2 additional policy types:
 ```
 template<typename T, T NullValue>
 struct opt_null_value_policy;
 ```
 may be used to provide _Null_ value for integral type right in the class type definition. For example:
 ```
-opt<int, opt_null_value_policy<int, -1>> optInt;
+opt<int, opt_null_value_policy<int, -1>> opt_int;
 ```
 
-For types which values cannot be used as template parameter (e.g. `float`) one can use:
+For types which values cannot be used as template argument (e.g. `float`) one can use:
 ```
 template<typename T, typename NullType>
 struct opt_null_type_policy;
 ```
 which assumes that `NullType::value` will represent _Null_ value. For example:
 ```
-  struct MyNullFloat { static constexpr float value = 0.0f; };
-  opt<float, opt_null_type_policy<float, MyNullFloat>> optFloat;
+  struct my_null_float { static constexpr float value = 0.0f; };
+  opt<float, opt_null_type_policy<float, my_null_float>> opt_float;
 ```
+
+### What if `my_type` does not provide equality comparison?
+
+`opt<T, Policy>` needs to compare contained value with special _Null_ value provided by the _Policy_ type. By default
+it tries to use `operator==()`. If the equality comparison  is not provided for `my_type` than either:
+- `operator==()` should be provided, or
+- additional `has_value(const T& value)` member function should be provided in the `Policy` type and it should return
+  `false` if `value == null_value()` or `true` otherwise:
+```
+struct my_opt_policy {
+  static constexpr my_type null_value() noexcept { return my_type_null_value; }
+  static constexpr bool has_value(const T& value) noexcept { return value != null_value(); }
+};
+opt<my_type, my_opt_policy> my_opt_val;
+```
+
+### What if `my_type` prevents me from setting value out of allowed range?
+
+In case `my_type` has some non-trivial logic or validation in its contructors and assignment operators that prevents
+one to set special out-of-range value as _Null_ value for the type than `Policy` class can be extended with following
+information:
+
+***TBD***
