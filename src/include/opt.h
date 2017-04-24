@@ -33,13 +33,12 @@ struct opt_default_policy {
 
 template<typename T, T NullValue>
 struct opt_null_value_policy {
-  static constexpr bool has_value(T value) noexcept { return value != NullValue; }
   static constexpr T null_value() noexcept { return NullValue; }
 };
 
 template<typename T, typename NullType>
 struct opt_null_type_policy {
-  static constexpr bool has_value(T value) noexcept { return value != NullType::value; }
+  static constexpr bool has_value(T value) noexcept { return value != null_value(); }
   static constexpr T null_value() noexcept { return NullType::value; }
 };
 
@@ -47,6 +46,20 @@ template<typename T, typename Policy>
 class opt;
 
 namespace detail {
+
+template <typename...>
+using void_t = void;
+
+template<typename T, typename P, typename Result, template <class, class> class Operation, class = void>
+struct has_operation : std::false_type {
+};
+
+template<typename T, typename P, typename Result, template<class, class> class Operation>
+struct has_operation<T, P, Result, Operation, void_t<Operation<T, P>>> : std::is_same<Operation<T, P>, Result> {
+};
+
+template <typename T, typename P> using has_value_t   = decltype(std::declval<P>().has_value(std::declval<T>()));
+template <typename T, typename P> using has_has_value = has_operation<T, P, bool, has_value_t>;
 
 template<typename T>
 struct is_opt : std::false_type {};
@@ -69,7 +82,19 @@ using assigns_from_opt =
     std::disjunction<std::is_assignable<T&, opt<U, P>&>, std::is_assignable<T&, const opt<U, P>&>,
                      std::is_assignable<T&, opt<U, P>&&>, std::is_assignable<T&, const opt<U, P>&&>>;
 
+template<typename Policy, typename T>
+constexpr bool has_value(std::true_type, const T& value) noexcept(noexcept(Policy::has_value(std::declval<T>())))
+{
+  return Policy::has_value(value);
 }
+
+template<typename Policy, typename T>
+constexpr bool has_value(std::false_type, const T& value) noexcept(noexcept(Policy::null_value()))
+{
+  return !(value == Policy::null_value());
+}
+
+} // namespace detail
 
 template<typename T, typename Policy = opt_default_policy<T>>
 class opt {
@@ -202,13 +227,13 @@ public:
   constexpr T&& operator*() && { return std::move(value_); }
   constexpr const T&& operator*() const && { return std::move(value_); }
 
-  constexpr explicit operator bool() const noexcept(noexcept(Policy::has_value(std::declval<T>())))
+  constexpr bool has_value() const noexcept(noexcept(detail::has_value<Policy>(detail::has_has_value<T, Policy>{}, std::declval<T>())))
+  {
+    return detail::has_value<Policy>(detail::has_has_value<T, Policy>{}, **this);
+  }
+  constexpr explicit operator bool() const noexcept(noexcept(std::declval<opt<T, Policy>>().has_value()))
   {
     return has_value();
-  }
-  constexpr bool has_value() const noexcept(noexcept(Policy::has_value(std::declval<T>())))
-  {
-    return Policy::has_value(**this);
   }
 
   // clang-format off

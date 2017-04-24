@@ -96,7 +96,7 @@ const weekday opt_default_policy<weekday>::null_value_{opt_default_policy<weekda
 namespace {
 
   template<typename T>
-  struct NullFloating { static constexpr T value = 0.0f; };
+  struct null_floating { static constexpr T value = 0.0f; };
 
   template<typename T>
   struct opt_traits;
@@ -156,7 +156,7 @@ namespace {
     static constexpr double value_2 = 123.456f;
 
     using other_type = float;
-    using other_policy_type = opt_null_type_policy<other_type, NullFloating<other_type>>;
+    using other_policy_type = opt_null_type_policy<other_type, null_floating<other_type>>;
     static constexpr other_type other_value_1 = 3.14f;
     static constexpr other_type other_value_2 = 123.456f;
   };
@@ -171,7 +171,7 @@ namespace {
     const typename traits::other_type other_value_1 = traits::other_value_1;
     const typename traits::other_type other_value_2 = traits::other_value_2;
   };
-  using test_types = ::testing::Types<opt<bool>, opt<weekday>, opt<long, opt_null_value_policy<long, -1>>, opt<double, opt_null_type_policy<double, NullFloating<double>>>>;
+  using test_types = ::testing::Types<opt<bool>, opt<weekday>, opt<long, opt_null_value_policy<long, -1>>, opt<double, opt_null_type_policy<double, null_floating<double>>>>;
   TYPED_TEST_CASE(optTyped, test_types);
 
 }
