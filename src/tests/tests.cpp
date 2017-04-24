@@ -126,7 +126,7 @@ namespace {
     static constexpr long value_2 = 999;
 
     using other_type = int;
-    using other_policy_type = opt_null_value_policy<other_type, -1>;
+    using other_policy_type = opt_null_value_policy<other_type, std::numeric_limits<other_type>::max()>;
     static constexpr other_type other_value_1 = 123;
     static constexpr other_type other_value_2 = 999;
   };
