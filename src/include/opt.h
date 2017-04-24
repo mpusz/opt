@@ -22,8 +22,7 @@
 
 #pragma once
 
-#include <experimental/optional>
-#include <type_traits>
+#include "opt_bits.h"
 
 template<typename T>
 struct opt_default_policy {
@@ -42,71 +41,18 @@ struct opt_null_type_policy {
   static constexpr T null_value() noexcept { return NullType::value; }
 };
 
-template<typename T, typename Policy>
-class opt;
-
-namespace detail {
-
-template <typename...>
-using void_t = void;
-
-template<typename T, typename P, typename Result, template <class, class> class Operation, class = void>
-struct has_operation : std::false_type {
-};
-
-template<typename T, typename P, typename Result, template<class, class> class Operation>
-struct has_operation<T, P, Result, Operation, void_t<Operation<T, P>>> : std::is_same<Operation<T, P>, Result> {
-};
-
-template <typename T, typename P> using has_value_t   = decltype(std::declval<P>().has_value(std::declval<T>()));
-template <typename T, typename P> using has_has_value = has_operation<T, P, bool, has_value_t>;
-
-template<typename T>
-struct is_opt : std::false_type {};
-
-template<typename T, typename P>
-struct is_opt<opt<T, P>> : std::true_type {};
-
-template<typename... Args>
-using Requires = std::enable_if_t<std::conjunction<Args...>::value, bool>;
-
-template<typename T, typename U, typename P>
-using constructs_or_converts_from_opt =
-    std::disjunction<std::is_constructible<T, opt<U, P>&>, std::is_constructible<T, const opt<U, P>&>,
-                     std::is_constructible<T, opt<U, P>&&>, std::is_constructible<T, const opt<U, P>&&>,
-                     std::is_convertible<opt<U, P>&, T>, std::is_convertible<const opt<U, P>&, T>,
-                     std::is_convertible<opt<U, P>&&, T>, std::is_convertible<const opt<U, P>&&, T>>;
-
-template<typename T, typename U, typename P>
-using assigns_from_opt =
-    std::disjunction<std::is_assignable<T&, opt<U, P>&>, std::is_assignable<T&, const opt<U, P>&>,
-                     std::is_assignable<T&, opt<U, P>&&>, std::is_assignable<T&, const opt<U, P>&&>>;
-
-template<typename Policy, typename T>
-constexpr bool has_value(std::true_type, const T& value) noexcept(noexcept(Policy::has_value(std::declval<T>())))
-{
-  return Policy::has_value(value);
-}
-
-template<typename Policy, typename T>
-constexpr bool has_value(std::false_type, const T& value) noexcept(noexcept(Policy::null_value()))
-{
-  return !(value == Policy::null_value());
-}
-
-} // namespace detail
-
 template<typename T, typename Policy = opt_default_policy<T>>
 class opt {
+  using traits = detail::opt_policy_traits<T, Policy>;
   T value_;
 
 public:
   using value_type = T;
 
   // constructors
-  constexpr opt() noexcept(noexcept(Policy::null_value())) : value_{Policy::null_value()} {}
+  constexpr opt() noexcept(noexcept(traits::null_value())) : value_{traits::null_value()} {}
 
-  constexpr opt(std::experimental::nullopt_t) noexcept(noexcept(Policy::null_value())) : opt{} {}
+  constexpr opt(std::experimental::nullopt_t) noexcept(noexcept(opt<T, Policy>{})) : opt{} {}
 
   opt(const opt&) = default;
   opt(opt&&) = default;
@@ -147,25 +93,25 @@ public:
            detail::Requires<std::is_constructible<T, const U&>,
                             std::disjunction<std::is_same<std::decay_t<T>, bool>, std::negation<detail::constructs_or_converts_from_opt<T, U, P>>>> = true,
            detail::Requires<std::negation<std::is_convertible<const U&, T>>> = true>
-  explicit opt(const opt<U, P>& other) : value_{other.has_value() ? T{*other} : Policy::null_value()} {}
+  explicit opt(const opt<U, P>& other) : value_{other.has_value() ? T{*other} : traits::null_value()} {}
 
   template<typename U, typename P,
            detail::Requires<std::is_constructible<T, const U&>,
                             std::disjunction<std::is_same<std::decay_t<T>, bool>, std::negation<detail::constructs_or_converts_from_opt<T, U, P>>>> = true,
            detail::Requires<std::is_convertible<const U&, T>> = true>
-  opt(const opt<U, P>& other) : value_{other.has_value() ? T{*other} : Policy::null_value()} {}
+  opt(const opt<U, P>& other) : value_{other.has_value() ? T{*other} : traits::null_value()} {}
 
   template<typename U, typename P,
            detail::Requires<std::is_constructible<T, U&&>,
                             std::disjunction<std::is_same<std::decay_t<T>, bool>, std::negation<detail::constructs_or_converts_from_opt<T, U, P>>>> = true,
            detail::Requires<std::negation<std::is_convertible<U&&, T>>> = true>
-  explicit constexpr opt(opt<U, P>&& other) : value_{other.has_value() ? T{std::move(*other)} : Policy::null_value()} {}
+  explicit constexpr opt(opt<U, P>&& other) : value_{other.has_value() ? T{std::move(*other)} : traits::null_value()} {}
 
   template<typename U, typename P,
            detail::Requires<std::is_constructible<T, U&&>,
                             std::disjunction<std::is_same<std::decay_t<T>, bool>, std::negation<detail::constructs_or_converts_from_opt<T, U, P>>>> = true,
            detail::Requires<std::is_convertible<U&&, T>> = true>
-  constexpr opt(opt<U, P>&& other) : value_{other.has_value() ? T{std::move(*other)} : Policy::null_value()} {}
+  constexpr opt(opt<U, P>&& other) : value_{other.has_value() ? T{std::move(*other)} : traits::null_value()} {}
 
   // assignment
   opt& operator=(std::experimental::nullopt_t) noexcept
@@ -227,9 +173,9 @@ public:
   constexpr T&& operator*() && { return std::move(value_); }
   constexpr const T&& operator*() const && { return std::move(value_); }
 
-  constexpr bool has_value() const noexcept(noexcept(detail::has_value<Policy>(detail::has_has_value<T, Policy>{}, std::declval<T>())))
+  constexpr bool has_value() const noexcept(noexcept(traits::has_value(std::declval<T>())))
   {
-    return detail::has_value<Policy>(detail::has_has_value<T, Policy>{}, **this);
+    return traits::has_value(**this);
   }
   constexpr explicit operator bool() const noexcept(noexcept(std::declval<opt<T, Policy>>().has_value()))
   {
@@ -248,7 +194,7 @@ public:
   // clang-format on
 
   // modifiers
-  void reset() noexcept(noexcept(Policy::null_value())) { **this = Policy::null_value(); }
+  void reset() noexcept(noexcept(traits::null_value())) { **this = traits::null_value(); }
 };
 
 // relational operators
