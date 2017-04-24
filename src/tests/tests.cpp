@@ -84,8 +84,7 @@ const my_bool opt_default_policy<my_bool>::null_value_ = opt_default_policy<my_b
 
 template<>
 struct opt_default_policy<weekday> {
-  static constexpr bool has_value(weekday value) noexcept { return value.value_ != null_underlying_value_; }
-  static const weekday null_value() noexcept              { return null_value_; }
+  static const weekday null_value() noexcept { return null_value_; }
 private:
   using null_underlying_type_ = weekday::underlying_type;
   static constexpr null_underlying_type_ null_underlying_value_ = std::numeric_limits<null_underlying_type_>::max();
