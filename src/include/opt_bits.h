@@ -69,28 +69,23 @@ namespace detail {
       std::disjunction<std::is_assignable<T&, opt<U, P>&>, std::is_assignable<T&, const opt<U, P>&>,
                        std::is_assignable<T&, opt<U, P>&&>, std::is_assignable<T&, const opt<U, P>&&>>;
 
-  template<typename Policy, typename T>
-  constexpr bool has_value_impl(std::true_type, const T& value) noexcept(noexcept(Policy::has_value(std::declval<T>())))
-  {
-    return Policy::has_value(value);
-  }
-
-  template<typename Policy, typename T>
-  constexpr bool has_value_impl(std::false_type, const T& value) noexcept(noexcept(Policy::null_value()))
-  {
-    return !(value == Policy::null_value());
-  }
-
   template<typename T, typename Policy>
   struct opt_policy_traits {
     // always calls Policy::null_value()
     static constexpr auto null_value() noexcept(noexcept(Policy::null_value())) { return Policy::null_value(); }
 
     // calls Policy::has_value() if available, otherwise uses operator==() for comparison
-    static constexpr bool has_value(const T& value) noexcept(noexcept(has_value_impl<Policy>(has_has_value<T, Policy>{},
-                                                                                             std::declval<T>())))
+    template<typename U = T, typename P = Policy,
+             Requires<has_has_value<U, P>> = true>
+    static constexpr bool has_value(const T& value) noexcept(noexcept(Policy::has_value(std::declval<T>())))
     {
-      return has_value_impl<Policy>(detail::has_has_value<T, Policy>{}, value);
+      return Policy::has_value(value);
+    }
+    template<typename U = T, typename P = Policy,
+             Requires<std::negation<has_has_value<U, P>>> = true>
+    static constexpr bool has_value(const T& value) noexcept(noexcept(null_value()))
+    {
+      return !(value == null_value());
     }
   };
 
