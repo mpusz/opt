@@ -52,7 +52,7 @@ public:
   using value_type = T;
 
   // constructors
-  constexpr opt() noexcept(noexcept(traits::null_value())) : value_{traits::null_value()} {}
+  constexpr opt() noexcept(noexcept(storage_type{traits::null_value()})) : storage_{traits::null_value()} {}
 
   constexpr opt(std::experimental::nullopt_t) noexcept(noexcept(opt<T, Policy>{})) : opt{} {}
 
