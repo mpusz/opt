@@ -81,8 +81,29 @@ opt<my_type, my_opt_policy> my_opt_val;
 
 ### What if `my_type` prevents me from setting value out of allowed range?
 
-In case `my_type` has some non-trivial logic or validation in its contructors and assignment operators that prevents
-one to set special out-of-range value as _Null_ value for the type than `Policy` class can be extended with following
-information:
+Sometimes `my_type` has some non-trivial logic or validation in its contructors or assignment operators that prevents
+one to set special out-of-range value as _Null_ value for the type. In such case it is possible to extend `Policy`
+class with following additional `storage_type` public member type. Such `storage_type` type:
+- should be of the same size as `my_type` type
+- should be constructible and assignable in the same way as `my_type`
+- when storing not _Null_ value should have exactly the same memory representation as if the value was stored by
+  `my_type` type
+- should be used in `null_value()` and `has_value()` member functions instead of `my_type`. 
 
-***TBD***
+Below is an example of how `opt<bool>` could be implemented:
+```
+template<>
+struct opt_default_policy<bool> {
+private:
+  union storage {
+    bool value;
+    std::int8_t null_value = -1;
+    storage() = default;
+    constexpr storage(bool v) noexcept : value{v} {}
+  };
+public:
+  using storage_type = storage;
+  static constexpr storage_type null_value() noexcept      { return storage_type{}; }
+  static constexpr bool has_value(storage_type s) noexcept { return s.null_value != -1; }
+};
+```

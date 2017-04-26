@@ -44,7 +44,9 @@ struct opt_null_type_policy {
 template<typename T, typename Policy = opt_default_policy<T>>
 class opt {
   using traits = detail::opt_policy_traits<T, Policy>;
-  T value_;
+  using storage_type = typename traits::storage_type;
+
+  storage_type storage_;
 
 public:
   using value_type = T;
@@ -58,14 +60,14 @@ public:
   opt(opt&&) = default;
 
   template<typename... Args, detail::Requires<std::is_constructible<T, Args...>> = true>
-  constexpr explicit opt(std::experimental::in_place_t, Args&&... args) : value_{std::forward<Args>(args)...}
+  constexpr explicit opt(std::experimental::in_place_t, Args&&... args) : storage_{std::forward<Args>(args)...}
   {
   }
 
   template<typename U, typename... Args,
            detail::Requires<std::is_constructible<T, std::initializer_list<U>&, Args&&...>> = true>
   constexpr explicit opt(std::experimental::in_place_t, std::initializer_list<U> ilist, Args&&... args)
-      : value_{ilist, std::forward<Args>(args)...}
+      : storage_{ilist, std::forward<Args>(args)...}
   {
   }
 
@@ -75,7 +77,7 @@ public:
                             std::negation<std::is_same<opt<T, Policy>, std::decay_t<U>>>,
                             std::negation<detail::is_opt<std::decay_t<U>>>> = true,
            detail::Requires<std::negation<std::is_convertible<U&&, T>>> = true>
-  explicit constexpr opt(U&& value) : value_{std::forward<U>(value)}
+  explicit constexpr opt(U&& value) : storage_{std::forward<U>(value)}
   {
   }
 
@@ -85,7 +87,7 @@ public:
                             std::negation<std::is_same<opt<T, Policy>, std::decay_t<U>>>,
                             std::negation<detail::is_opt<std::decay_t<U>>>> = true,
            detail::Requires<std::is_convertible<U&&, T>> = true>
-  constexpr opt(U&& value) : value_{std::forward<U>(value)}
+  constexpr opt(U&& value) : storage_{std::forward<U>(value)}
   {
   }
 
@@ -94,7 +96,7 @@ public:
                             std::disjunction<std::is_same<std::decay_t<T>, bool>,
                                              std::negation<detail::constructs_or_converts_from_opt<T, U, P>>>> = true,
            detail::Requires<std::negation<std::is_convertible<const U&, T>>> = true>
-  explicit opt(const opt<U, P>& other) : value_{other.has_value() ? T{*other} : traits::null_value()}
+  explicit opt(const opt<U, P>& other) : storage_{other.has_value() ? T{*other} : traits::null_value()}
   {
   }
 
@@ -103,7 +105,7 @@ public:
                             std::disjunction<std::is_same<std::decay_t<T>, bool>,
                                              std::negation<detail::constructs_or_converts_from_opt<T, U, P>>>> = true,
            detail::Requires<std::is_convertible<const U&, T>> = true>
-  opt(const opt<U, P>& other) : value_{other.has_value() ? T{*other} : traits::null_value()}
+  opt(const opt<U, P>& other) : storage_{other.has_value() ? T{*other} : traits::null_value()}
   {
   }
 
@@ -112,7 +114,7 @@ public:
                             std::disjunction<std::is_same<std::decay_t<T>, bool>,
                                              std::negation<detail::constructs_or_converts_from_opt<T, U, P>>>> = true,
            detail::Requires<std::negation<std::is_convertible<U&&, T>>> = true>
-  explicit constexpr opt(opt<U, P>&& other) : value_{other.has_value() ? T{std::move(*other)} : traits::null_value()}
+  explicit constexpr opt(opt<U, P>&& other) : storage_{other.has_value() ? T{std::move(*other)} : traits::null_value()}
   {
   }
 
@@ -121,7 +123,7 @@ public:
                             std::disjunction<std::is_same<std::decay_t<T>, bool>,
                                              std::negation<detail::constructs_or_converts_from_opt<T, U, P>>>> = true,
            detail::Requires<std::is_convertible<U&&, T>> = true>
-  constexpr opt(opt<U, P>&& other) : value_{other.has_value() ? T{std::move(*other)} : traits::null_value()}
+  constexpr opt(opt<U, P>&& other) : storage_{other.has_value() ? T{std::move(*other)} : traits::null_value()}
   {
   }
 
@@ -174,20 +176,20 @@ public:
   void swap(opt& other) noexcept(
       std::is_nothrow_move_constructible<T>::value /* && std::is_nothrow_swappable<T>::value */)
   {
-    std::swap(value_, other.value_);
+    std::swap(storage_, other.storage_);
   }
 
   // observers
-  constexpr const T* operator->() const { return &value_; }
-  constexpr T* operator->() { return &value_; }
-  constexpr const T& operator*() const & { return value_; }
-  constexpr T& operator*() & { return value_; }
-  constexpr T&& operator*() && { return std::move(value_); }
-  constexpr const T&& operator*() const && { return std::move(value_); }
+  constexpr const T* operator->() const    { return reinterpret_cast<const T*>(&storage_); }
+  constexpr T* operator->()                { return reinterpret_cast<T*>(&storage_); }
+  constexpr const T& operator*() const &   { return *reinterpret_cast<const T*>(&storage_); }
+  constexpr T& operator*() &               { return *reinterpret_cast<T*>(&storage_); }
+  constexpr T&& operator*() &&             { return std::move(*reinterpret_cast<T*>(&storage_)); }
+  constexpr const T&& operator*() const && { return std::move(*reinterpret_cast<const T*>(&storage_)); }
 
   constexpr bool has_value() const noexcept(noexcept(traits::has_value(std::declval<T>())))
   {
-    return traits::has_value(**this);
+    return traits::has_value(storage_);
   }
   constexpr explicit operator bool() const noexcept(noexcept(std::declval<opt<T, Policy>>().has_value()))
   {
@@ -206,7 +208,7 @@ public:
   // clang-format on
 
   // modifiers
-  void reset() noexcept(noexcept(traits::null_value())) { **this = traits::null_value(); }
+  void reset() noexcept(noexcept(traits::null_value())) { storage_ = traits::null_value(); }
 };
 
 // relational operators

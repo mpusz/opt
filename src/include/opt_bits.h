@@ -30,6 +30,9 @@ class opt;
 
 namespace detail {
 
+  template<typename... Args>
+  using Requires = std::enable_if_t<std::conjunction<Args...>::value, bool>;
+
   template<typename...>
   using void_t = void;
 
@@ -41,11 +44,6 @@ namespace detail {
   struct has_operation<T, P, Result, Operation, void_t<Operation<T, P>>> : std::is_same<Operation<T, P>, Result> {
   };
 
-  template<typename T, typename P>
-  using has_value_t = decltype(std::declval<P>().has_value(std::declval<T>()));
-  template<typename T, typename P>
-  using has_has_value = has_operation<T, P, bool, has_value_t>;
-
   template<typename T>
   struct is_opt : std::false_type {
   };
@@ -53,9 +51,6 @@ namespace detail {
   template<typename T, typename P>
   struct is_opt<opt<T, P>> : std::true_type {
   };
-
-  template<typename... Args>
-  using Requires = std::enable_if_t<std::conjunction<Args...>::value, bool>;
 
   template<typename T, typename U, typename P>
   using constructs_or_converts_from_opt =
@@ -69,21 +64,45 @@ namespace detail {
       std::disjunction<std::is_assignable<T&, opt<U, P>&>, std::is_assignable<T&, const opt<U, P>&>,
                        std::is_assignable<T&, opt<U, P>&&>, std::is_assignable<T&, const opt<U, P>&&>>;
 
+  template<typename T, typename P>
+  using has_value_t = decltype(std::declval<P>().has_value(std::declval<T>()));
+  template<typename T, typename P>
+  using get_value_t = decltype(std::declval<P>().get_value(std::declval<T>()));
+
+  template<typename T, typename P>
+  using has_has_value = has_operation<T, P, bool, has_value_t>;
+  template<typename T, typename P>
+  using has_get_value = has_operation<T, P, bool, get_value_t>;
+
+  template<typename T, typename Policy, typename = void_t<>>
+  struct detect_storage_type {
+    using type = T;
+  };
+
+  template<typename T, typename Policy>
+  struct detect_storage_type<T, Policy, std::void_t<typename Policy::storage_type>> {
+    using type = typename Policy::storage_type;
+    static_assert(sizeof(T) == sizeof(type), "'sizeof(Policy::storage_type) != sizeof(T)' consider using std::optional<T>");
+  };
+
   template<typename T, typename Policy>
   struct opt_policy_traits {
+    // Policy::storage_type if exists, T otherwise
+    using storage_type = typename detect_storage_type<T, Policy>::type;
+
     // always calls Policy::null_value()
-    static constexpr auto null_value() noexcept(noexcept(Policy::null_value())) { return Policy::null_value(); }
+    static constexpr storage_type null_value() noexcept(noexcept(Policy::null_value())) { return Policy::null_value(); }
 
     // calls Policy::has_value() if available, otherwise uses operator==() for comparison
-    template<typename U = T, typename P = Policy,
+    template<typename U = storage_type, typename P = Policy,
              Requires<has_has_value<U, P>> = true>
-    static constexpr bool has_value(const T& value) noexcept(noexcept(Policy::has_value(std::declval<T>())))
+    static constexpr bool has_value(const U& storage) noexcept(noexcept(Policy::has_value(storage)))
     {
-      return Policy::has_value(value);
+      return Policy::has_value(storage);
     }
-    template<typename U = T, typename P = Policy,
+    template<typename U = storage_type, typename P = Policy,
              Requires<std::negation<has_has_value<U, P>>> = true>
-    static constexpr bool has_value(const T& value) noexcept(noexcept(null_value()))
+    static constexpr bool has_value(const U& value) noexcept(noexcept(null_value()))
     {
       return !(value == null_value());
     }

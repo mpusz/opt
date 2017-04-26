@@ -23,17 +23,15 @@
 #include "opt.h"
 #include <gtest/gtest.h>
 
-// explicit instantiation needed to make code coverage metrics work correctly
-template class opt<int, opt_null_value_policy<int, -1>>;
-
 namespace {
 
   using namespace std::experimental;
 
   struct my_bool {
-    bool value_;
+    std::uint8_t value_;
     my_bool() = default;
     constexpr my_bool(bool v) noexcept : value_{v} {}
+    explicit constexpr my_bool(std::uint8_t v) noexcept : value_{v} {}
     constexpr operator bool() const noexcept { return value_; }
   };
 
@@ -55,43 +53,27 @@ namespace {
 
 template<>
 struct opt_default_policy<bool> {
-  static bool has_value(bool value) noexcept
-  {
-    return reinterpret_cast<null_type_&>(value) != reinterpret_cast<const null_type_&>(null_value_);
-  }
-  static bool null_value() noexcept { return null_value_; }
-
 private:
-  using null_type_ = std::int8_t;
-  static bool make_null()
-  {
-    bool value{};
-    reinterpret_cast<null_type_&>(value) = -1;
-    return value;
-  }
-  static const bool null_value_;
+  union storage {
+    bool value;
+    std::int8_t null_value = -1;
+    storage() = default;
+    constexpr storage(bool v) noexcept : value{v} {}
+  };
+public:
+  using storage_type = storage;
+  static constexpr storage_type null_value() noexcept      { return storage_type{}; }
+  static constexpr bool has_value(storage_type s) noexcept { return s.null_value != -1; }
 };
-const bool opt_default_policy<bool>::null_value_ = opt_default_policy<bool>::make_null();
 
 template<>
 struct opt_default_policy<my_bool> {
   static bool has_value(my_bool value) noexcept
   {
-    return reinterpret_cast<null_type_&>(value.value_) != reinterpret_cast<const null_type_&>(null_value_.value_);
+    return value.value_ != 255;
   }
-  static my_bool null_value() noexcept { return null_value_; }
-
-private:
-  using null_type_ = std::int8_t;
-  static my_bool make_null()
-  {
-    my_bool val;
-    reinterpret_cast<null_type_&>(val.value_) = -1;
-    return val;
-  }
-  static const my_bool null_value_;
+  static my_bool null_value() noexcept { return my_bool{std::uint8_t{255}}; }
 };
-const my_bool opt_default_policy<my_bool>::null_value_ = opt_default_policy<my_bool>::make_null();
 
 template<>
 struct opt_default_policy<weekday> {
