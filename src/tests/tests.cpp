@@ -38,9 +38,13 @@ namespace {
   struct weekday {
     using underlying_type = std::int8_t;
     underlying_type value_;  // 0 - 6
-    constexpr explicit weekday(underlying_type v) noexcept : value_{v} {}
-    constexpr weekday& operator=(underlying_type v) noexcept
+    constexpr explicit weekday(underlying_type v) : value_{v}
     {
+      if(v < 0 || v > 6) throw std::out_of_range{"weekday value outside of allowed range"};
+    }
+    constexpr weekday& operator=(underlying_type v)
+    {
+      if(v < 0 || v > 6) throw std::out_of_range{"weekday value outside of allowed range"};
       value_ = v;
       return *this;
     }
@@ -60,31 +64,42 @@ private:
     storage() = default;
     constexpr storage(bool v) noexcept : value{v} {}
   };
+
 public:
   using storage_type = storage;
-  static constexpr storage_type null_value() noexcept      { return storage_type{}; }
+  static constexpr storage_type null_value() noexcept { return storage_type{}; }
   static constexpr bool has_value(storage_type s) noexcept { return s.null_value != -1; }
 };
 
 template<>
 struct opt_default_policy<my_bool> {
-  static bool has_value(my_bool value) noexcept
-  {
-    return value.value_ != 255;
-  }
   static my_bool null_value() noexcept { return my_bool{std::uint8_t{255}}; }
+  static bool has_value(my_bool value) noexcept { return value.value_ != 255; }
 };
 
 template<>
 struct opt_default_policy<weekday> {
-  static const weekday null_value() noexcept { return null_value_; }
+  union storage_type {
+    weekday value;
+    weekday::underlying_type null_value = std::numeric_limits<weekday::underlying_type>::max();
 
-private:
-  using null_underlying_type_ = weekday::underlying_type;
-  static constexpr null_underlying_type_ null_underlying_value_ = std::numeric_limits<null_underlying_type_>::max();
-  static const weekday null_value_;
+    constexpr storage_type() noexcept {};
+    constexpr storage_type(weekday v) : value{v} {}
+    constexpr storage_type(weekday::underlying_type v) : value{v} {}
+    storage_type& operator=(weekday v)
+    {
+      value = v;
+      return *this;
+    }
+  };
+
+public:
+  static storage_type null_value() noexcept { return storage_type{}; }
+  static bool has_value(storage_type value) noexcept
+  {
+    return value.null_value != std::numeric_limits<weekday::underlying_type>::max();
+  }
 };
-const weekday opt_default_policy<weekday>::null_value_{opt_default_policy<weekday>::null_underlying_value_};
 
 namespace {
 

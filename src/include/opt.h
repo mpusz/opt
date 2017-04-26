@@ -128,7 +128,7 @@ public:
   }
 
   // assignment
-  opt& operator=(std::experimental::nullopt_t) noexcept
+  opt& operator=(std::experimental::nullopt_t) noexcept(noexcept(std::declval<opt<T, Policy>>().reset()))
   {
     reset();
     return *this;
@@ -174,20 +174,20 @@ public:
 
   // swap
   void swap(opt& other) noexcept(
-      std::is_nothrow_move_constructible<T>::value /* && std::is_nothrow_swappable<T>::value */)
+      std::is_nothrow_move_constructible<storage_type>::value /* && std::is_nothrow_swappable<storage_type>::value */)
   {
     std::swap(storage_, other.storage_);
   }
 
   // observers
-  constexpr const T* operator->() const    { return reinterpret_cast<const T*>(&storage_); }
-  constexpr T* operator->()                { return reinterpret_cast<T*>(&storage_); }
-  constexpr const T& operator*() const &   { return *reinterpret_cast<const T*>(&storage_); }
-  constexpr T& operator*() &               { return *reinterpret_cast<T*>(&storage_); }
-  constexpr T&& operator*() &&             { return std::move(*reinterpret_cast<T*>(&storage_)); }
+  constexpr const T* operator->() const { return reinterpret_cast<const T*>(&storage_); }
+  constexpr T* operator->() { return reinterpret_cast<T*>(&storage_); }
+  constexpr const T& operator*() const & { return *reinterpret_cast<const T*>(&storage_); }
+  constexpr T& operator*() & { return *reinterpret_cast<T*>(&storage_); }
+  constexpr T&& operator*() && { return std::move(*reinterpret_cast<T*>(&storage_)); }
   constexpr const T&& operator*() const && { return std::move(*reinterpret_cast<const T*>(&storage_)); }
 
-  constexpr bool has_value() const noexcept(noexcept(traits::has_value(std::declval<T>())))
+  constexpr bool has_value() const noexcept(noexcept(traits::has_value(std::declval<storage_type>())))
   {
     return traits::has_value(storage_);
   }
