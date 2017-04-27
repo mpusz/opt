@@ -110,24 +110,26 @@ public:
 
 Here is another a bit more complicated example for some (not too smart ;-) ) `weekday` class:
 ```cpp
-struct weekday {
-  using underlying_type = std::int8_t;
-  underlying_type value_;  // 0 - 6
-  constexpr explicit weekday(underlying_type v) : value_{v}
-  {
-    if(v < 0 || v > 6) throw std::out_of_range{"weekday value outside of allowed range"};
-  }
-  constexpr weekday& operator=(underlying_type v)
-  {
-    if(v < 0 || v > 6) throw std::out_of_range{"weekday value outside of allowed range"};
-    value_ = v;
-    return *this;
-  }
-  underlying_type get() const { return value_; }
-};
-constexpr bool operator==(weekday lhs, weekday rhs) noexcept { return lhs.value_ == rhs.value_; }
-constexpr bool operator==(weekday::underlying_type lhs, weekday rhs) noexcept { return lhs == rhs.value_; }
-constexpr bool operator==(weekday lhs, weekday::underlying_type rhs) noexcept { return lhs.value_ == rhs; }
+  class weekday {
+  public:
+    using underlying_type = std::int8_t;
+    constexpr explicit weekday(underlying_type v) : value_{v}
+    {
+      if(v < 0 || v > 6) throw std::out_of_range{"weekday value outside of allowed range"};
+    }
+    constexpr weekday& operator=(underlying_type v)
+    {
+      if(v < 0 || v > 6) throw std::out_of_range{"weekday value outside of allowed range"};
+      value_ = v;
+      return *this;
+    }
+    constexpr underlying_type get() const noexcept { return value_; }
+  private:
+    underlying_type value_;  // 0 - 6
+  };
+  constexpr bool operator==(weekday lhs, weekday rhs) noexcept { return lhs.get() == rhs.get(); }
+  constexpr bool operator==(weekday::underlying_type lhs, weekday rhs) noexcept { return lhs == rhs.get(); }
+  constexpr bool operator==(weekday lhs, weekday::underlying_type rhs) noexcept { return lhs.get() == rhs; }
 
 template<>
 struct opt_default_policy<weekday> {

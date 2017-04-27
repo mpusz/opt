@@ -35,9 +35,9 @@ namespace {
     constexpr operator bool() const noexcept { return value_; }
   };
 
-  struct weekday {
+  class weekday {
+  public:
     using underlying_type = std::int8_t;
-    underlying_type value_;  // 0 - 6
     constexpr explicit weekday(underlying_type v) : value_{v}
     {
       if(v < 0 || v > 6) throw std::out_of_range{"weekday value outside of allowed range"};
@@ -48,11 +48,14 @@ namespace {
       value_ = v;
       return *this;
     }
-    underlying_type get() const { return value_; }
+    constexpr underlying_type get() const noexcept { return value_; }
+
+  private:
+    underlying_type value_;  // 0 - 6
   };
-  constexpr bool operator==(weekday lhs, weekday rhs) noexcept { return lhs.value_ == rhs.value_; }
-  constexpr bool operator==(weekday::underlying_type lhs, weekday rhs) noexcept { return lhs == rhs.value_; }
-  constexpr bool operator==(weekday lhs, weekday::underlying_type rhs) noexcept { return lhs.value_ == rhs; }
+  constexpr bool operator==(weekday lhs, weekday rhs) noexcept { return lhs.get() == rhs.get(); }
+  constexpr bool operator==(weekday::underlying_type lhs, weekday rhs) noexcept { return lhs == rhs.get(); }
+  constexpr bool operator==(weekday lhs, weekday::underlying_type rhs) noexcept { return lhs.get() == rhs; }
 }
 
 template<>
@@ -149,7 +152,7 @@ namespace {
     static const weekday value_1;
     static const weekday value_2;
 
-    using other_type = decltype(std::declval<weekday>().value_);
+    using other_type = weekday::underlying_type;
     using other_policy_type = opt_null_value_policy<other_type, -1>;
     static constexpr other_type other_value_1 = 0;
     static constexpr other_type other_value_2 = 3;
