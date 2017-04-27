@@ -1,0 +1,36 @@
+version: 1.0.{build}
+
+branches:
+  except:
+    - gh-pages
+
+skip_commits:
+  message: /\[ci skip\]/
+
+platform:
+  - x64
+ 
+configuration:
+  - Release
+
+init:
+  - git config --global core.autocrlf input
+
+clone_depth: 5
+  
+install:
+  - git submodule update --init --recursive
+  
+before_build:
+  - mkdir build && cd build
+  - cmake -G"Visual Studio 15 2017 Win64" ..
+
+build:
+  parallel: true
+  project: $(APPVEYOR_BUILD_FOLDER)\build\opt.sln
+
+test_script:
+  - ps: C:\projects\opt\build\src\tests\Release\unit_tests.exe --gtest_output=xml:unit_tests.xml
+
+on_finish:
+  - ps: (new-object net.webclient).UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\unit_tests.xml))
