@@ -31,7 +31,7 @@ set(VERSION_PATCH 1 CACHE STRING "Project patch version number.")
 #set(CMAKE_CXX_STANDARD 17)
 if(MSVC)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++latest")
-elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
+else()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1z")
 endif()
 
