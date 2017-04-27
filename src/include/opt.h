@@ -54,26 +54,26 @@ public:
   // constructors
   constexpr opt() noexcept(noexcept(storage_type{traits::null_value()})) : storage_{traits::null_value()} {}
 
-  constexpr opt(std::experimental::nullopt_t) noexcept(noexcept(opt<T, Policy>{})) : opt{} {}
+  constexpr opt(OPTIONAL_NAMESPACE::nullopt_t) noexcept(noexcept(opt<T, Policy>{})) : opt{} {}
 
   opt(const opt&) = default;
   opt(opt&&) = default;
 
   template<typename... Args, detail::Requires<std::is_constructible<T, Args...>> = true>
-  constexpr explicit opt(std::experimental::in_place_t, Args&&... args) : storage_{std::forward<Args>(args)...}
+  constexpr explicit opt(OPTIONAL_NAMESPACE::in_place_t, Args&&... args) : storage_{std::forward<Args>(args)...}
   {
   }
 
   template<typename U, typename... Args,
            detail::Requires<std::is_constructible<T, std::initializer_list<U>&, Args&&...>> = true>
-  constexpr explicit opt(std::experimental::in_place_t, std::initializer_list<U> ilist, Args&&... args)
+  constexpr explicit opt(OPTIONAL_NAMESPACE::in_place_t, std::initializer_list<U> ilist, Args&&... args)
       : storage_{ilist, std::forward<Args>(args)...}
   {
   }
 
   template<typename U = T,
            detail::Requires<std::is_constructible<T, U&&>,
-                            std::negation<std::is_same<std::decay_t<U>, std::experimental::in_place_t>>,
+                            std::negation<std::is_same<std::decay_t<U>, OPTIONAL_NAMESPACE::in_place_t>>,
                             std::negation<std::is_same<opt<T, Policy>, std::decay_t<U>>>,
                             std::negation<detail::is_opt<std::decay_t<U>>>> = true,
            detail::Requires<std::negation<std::is_convertible<U&&, T>>> = true>
@@ -83,7 +83,7 @@ public:
 
   template<typename U = T,
            detail::Requires<std::is_constructible<T, U&&>,
-                            std::negation<std::is_same<std::decay_t<U>, std::experimental::in_place_t>>,
+                            std::negation<std::is_same<std::decay_t<U>, OPTIONAL_NAMESPACE::in_place_t>>,
                             std::negation<std::is_same<opt<T, Policy>, std::decay_t<U>>>,
                             std::negation<detail::is_opt<std::decay_t<U>>>> = true,
            detail::Requires<std::is_convertible<U&&, T>> = true>
@@ -128,7 +128,7 @@ public:
   }
 
   // assignment
-  opt& operator=(std::experimental::nullopt_t) noexcept(noexcept(std::declval<opt<T, Policy>>().reset()))
+  opt& operator=(OPTIONAL_NAMESPACE::nullopt_t) noexcept(noexcept(std::declval<opt<T, Policy>>().reset()))
   {
     reset();
     return *this;
@@ -197,10 +197,10 @@ public:
   }
 
   // clang-format off
-  constexpr const T& value() const&              { return has_value() ? **this            : (throw std::experimental::bad_optional_access{}, **this); }
-  constexpr T& value() &                         { return has_value() ? **this            : (throw std::experimental::bad_optional_access{}, **this); }
-  constexpr T&& value() &&                       { return has_value() ? std::move(**this) : (throw std::experimental::bad_optional_access{}, std::move(**this)); }
-  constexpr const T&& value() const&&            { return has_value() ? std::move(**this) : (throw std::experimental::bad_optional_access{}, std::move(**this)); }
+  constexpr const T& value() const&              { if(!has_value()) throw OPTIONAL_NAMESPACE::bad_optional_access{}; return **this; }
+  constexpr T& value() &                         { if(!has_value()) throw OPTIONAL_NAMESPACE::bad_optional_access{}; return **this; }
+  constexpr T&& value() &&                       { if(!has_value()) throw OPTIONAL_NAMESPACE::bad_optional_access{}; return std::move(**this); }
+  constexpr const T&& value() const&&            { if(!has_value()) throw OPTIONAL_NAMESPACE::bad_optional_access{}; return std::move(**this); }
   template<typename U>
   constexpr T value_or(U&& default_value) const& { return has_value() ? **this            : T{std::forward<U>(default_value)}; }
   template<typename U>
@@ -250,18 +250,18 @@ constexpr bool operator>=(const opt<T, P>& lhs, const opt<U, R>& rhs)
 
 // clang-format off
 // comparison with nullopt
-template<typename T, typename P> constexpr bool operator==(const opt<T, P>& o, std::experimental::nullopt_t) noexcept { return !o; }
-template<typename T, typename P> constexpr bool operator==(std::experimental::nullopt_t, const opt<T, P>& o) noexcept { return !o; }
-template<typename T, typename P> constexpr bool operator!=(const opt<T, P>& o, std::experimental::nullopt_t) noexcept { return static_cast<bool>(o); }
-template<typename T, typename P> constexpr bool operator!=(std::experimental::nullopt_t, const opt<T, P>& o) noexcept { return static_cast<bool>(o); }
-template<typename T, typename P> constexpr bool operator< (const opt<T, P>&,   std::experimental::nullopt_t) noexcept { return false; }
-template<typename T, typename P> constexpr bool operator< (std::experimental::nullopt_t, const opt<T, P>& o) noexcept { return static_cast<bool>(o); }
-template<typename T, typename P> constexpr bool operator<=(const opt<T, P>& o, std::experimental::nullopt_t) noexcept { return !o; }
-template<typename T, typename P> constexpr bool operator<=(std::experimental::nullopt_t, const opt<T, P>&  ) noexcept { return true; }
-template<typename T, typename P> constexpr bool operator> (const opt<T, P>& o, std::experimental::nullopt_t) noexcept { return static_cast<bool>(o); }
-template<typename T, typename P> constexpr bool operator> (std::experimental::nullopt_t, const opt<T, P>&  ) noexcept { return false; }
-template<typename T, typename P> constexpr bool operator>=(const opt<T, P>&,   std::experimental::nullopt_t) noexcept { return true; }
-template<typename T, typename P> constexpr bool operator>=(std::experimental::nullopt_t, const opt<T, P>& o) noexcept { return !o; }
+template<typename T, typename P> constexpr bool operator==(const opt<T, P>& o, OPTIONAL_NAMESPACE::nullopt_t) noexcept { return !o; }
+template<typename T, typename P> constexpr bool operator==(OPTIONAL_NAMESPACE::nullopt_t, const opt<T, P>& o) noexcept { return !o; }
+template<typename T, typename P> constexpr bool operator!=(const opt<T, P>& o, OPTIONAL_NAMESPACE::nullopt_t) noexcept { return static_cast<bool>(o); }
+template<typename T, typename P> constexpr bool operator!=(OPTIONAL_NAMESPACE::nullopt_t, const opt<T, P>& o) noexcept { return static_cast<bool>(o); }
+template<typename T, typename P> constexpr bool operator< (const opt<T, P>&,   OPTIONAL_NAMESPACE::nullopt_t) noexcept { return false; }
+template<typename T, typename P> constexpr bool operator< (OPTIONAL_NAMESPACE::nullopt_t, const opt<T, P>& o) noexcept { return static_cast<bool>(o); }
+template<typename T, typename P> constexpr bool operator<=(const opt<T, P>& o, OPTIONAL_NAMESPACE::nullopt_t) noexcept { return !o; }
+template<typename T, typename P> constexpr bool operator<=(OPTIONAL_NAMESPACE::nullopt_t, const opt<T, P>&  ) noexcept { return true; }
+template<typename T, typename P> constexpr bool operator> (const opt<T, P>& o, OPTIONAL_NAMESPACE::nullopt_t) noexcept { return static_cast<bool>(o); }
+template<typename T, typename P> constexpr bool operator> (OPTIONAL_NAMESPACE::nullopt_t, const opt<T, P>&  ) noexcept { return false; }
+template<typename T, typename P> constexpr bool operator>=(const opt<T, P>&,   OPTIONAL_NAMESPACE::nullopt_t) noexcept { return true; }
+template<typename T, typename P> constexpr bool operator>=(OPTIONAL_NAMESPACE::nullopt_t, const opt<T, P>& o) noexcept { return !o; }
 
 // comparison with T
 template<typename T, typename P, typename U> constexpr bool operator==(const opt<T, P>& o, const U& value) { return  o && *o == value; }

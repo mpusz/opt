@@ -25,7 +25,7 @@
 
 namespace {
 
-  using namespace std::experimental;
+  using namespace OPTIONAL_NAMESPACE;
 
   struct my_bool {
     std::uint8_t value_;
