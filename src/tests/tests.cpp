@@ -787,6 +787,19 @@ TYPED_TEST(optTyped, swapNotEmptyWithNotEmpty)
   EXPECT_EQ(this->value_1, o2.value_or(this->value_2));
 }
 
+TEST(opt, constructOutOfRange)
+{
+  weekday::underlying_type d{7};
+  EXPECT_THROW(opt<weekday>{d}, std::out_of_range);
+}
+
+TEST(opt, assignOutOfRange)
+{
+  weekday::underlying_type d{7};
+  opt<weekday> o;
+  EXPECT_THROW(o = d, std::out_of_range);
+}
+
 TEST(opt, dereferenceOperator)
 {
   weekday::underlying_type d{1};
