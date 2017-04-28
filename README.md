@@ -34,17 +34,17 @@ Here is a simple example of how to use `opt<T, Policy>` for some artificial type
   using opt_price = opt<price, opt_null_value_policy<price, -1>>;
   static_assert(sizeof(opt_price) == sizeof(int));
 
-  constexpr opt_price o1;
-  static_assert(static_cast<bool>(o1) == false);
-  static_assert(o1.has_value() == false);
-  static_assert(o1.value_or(123) == 123);
+  opt_price o1;
+  assert(static_cast<bool>(o1) == false);
+  assert(o1.has_value() == false);
+  assert(o1.value_or(123) == 123);
 
   constexpr opt_price o2{99};
-  static_assert(static_cast<bool>(o2) == true);
-  static_assert(o2.has_value() == true);
-  static_assert(*o2 == 99);
-  static_assert(o2.value() == 99);
-  static_assert(o2.value_or(123) == 99);
+  assert(static_cast<bool>(o2) == true);
+  assert(o2.has_value() == true);
+  assert(*o2 == 99);
+  assert(o2.value() == 99);
+  assert(o2.value_or(123) == 99);
 
   opt_price o3{o2};
   assert(o3.has_value() == true);
