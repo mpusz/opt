@@ -7,13 +7,13 @@ branches:
 skip_commits:
   message: /\[ci skip\]/
 
+image: Visual Studio 2017
+
 platform:
   - x64
  
 configuration:
   - Release
-
-image: Visual Studio 2017
 
 init:
   - git config --global core.autocrlf input
@@ -29,10 +29,10 @@ before_build:
 
 build:
   parallel: true
-  project: $(APPVEYOR_BUILD_FOLDER)\build\opt.sln
+  project: $(APPVEYOR_BUILD_FOLDER)\build\$(APPVEYOR_PROJECT_NAME).sln
 
 test_script:
-  - ps: C:\projects\opt\build\src\tests\Release\unit_tests.exe --gtest_output=xml:unit_tests.xml
+  - ps: $(APPVEYOR_BUILD_FOLDER)\build\src\tests\Release\unit_tests.exe --gtest_output=xml:unit_tests.xml
 
 on_finish:
   - ps: (new-object net.webclient).UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\unit_tests.xml))

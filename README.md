@@ -1,6 +1,6 @@
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg?maxAge=3600)](https://raw.githubusercontent.com/mpusz/opt/master/LICENSE)
-[![Travis CI](https://img.shields.io/travis/mpusz/opt/master.svg)](https://travis-ci.org/mpusz/opt)
-[![AppVeyor](https://img.shields.io/appveyor/ci/mpusz/opt/master.svg?maxAge=2592000)]()
+[![Travis CI](https://img.shields.io/travis/mpusz/opt/master.svg?label=Travis%20CI)](https://travis-ci.org/mpusz/opt)
+[![AppVeyor](https://img.shields.io/appveyor/ci/mpusz/opt/master.svg?label=AppVeyor)](https://ci.appveyor.com/project/mpusz/opt)
 [![Codecov](https://img.shields.io/codecov/c/github/mpusz/opt/master.svg)](https://codecov.io/github/mpusz/opt?branch=master)
 
 # `opt<T, Policy>`
