@@ -84,7 +84,7 @@ template<>
 struct opt_default_policy<weekday> {
   union storage_type {
     weekday value;
-    weekday::underlying_type null_value = std::numeric_limits<weekday::underlying_type>::max();
+    weekday::underlying_type null_value = 7;
 
     constexpr storage_type() noexcept {};
     constexpr storage_type(weekday v) : value{v} {}
@@ -97,10 +97,10 @@ struct opt_default_policy<weekday> {
   };
 
 public:
-  static storage_type null_value() noexcept { return storage_type{}; }
-  static bool has_value(storage_type value) noexcept
+  static constexpr storage_type null_value() noexcept { return storage_type{}; }
+  static constexpr bool has_value(storage_type value) noexcept
   {
-    return value.null_value != std::numeric_limits<weekday::underlying_type>::max();
+    return value.null_value != 7;
   }
 };
 
@@ -187,6 +187,39 @@ namespace {
   using test_types = ::testing::Types<opt<bool>, opt<weekday>, opt<long, opt_null_value_policy<long, -1>>,
                                       opt<double, opt_null_type_policy<double, null_floating<double>>>>;
   TYPED_TEST_CASE(optTyped, test_types);
+}
+
+TEST(opt, Price)
+{
+  using price = int;
+  using opt_price = opt<price, opt_null_value_policy<price, -1>>;
+  static_assert(sizeof(opt_price) == sizeof(int));
+
+  constexpr opt_price o1;
+  static_assert(static_cast<bool>(o1) == false);
+  static_assert(o1.has_value() == false);
+  static_assert(o1.value_or(123) == 123);
+
+  constexpr opt_price o2{99};
+  static_assert(static_cast<bool>(o2) == true);
+  static_assert(o2.has_value() == true);
+  static_assert(*o2 == 99);
+  static_assert(o2.value() == 99);
+  static_assert(o2.value_or(123) == 99);
+
+  opt_price o3{o2};
+  EXPECT_TRUE(o3.has_value() == true);
+  EXPECT_TRUE(*o3 == 99);
+
+  o3 = o1;
+  EXPECT_TRUE(o3.has_value() == false);
+
+  o3 = o2;
+  EXPECT_TRUE(o3.has_value() == true);
+  EXPECT_TRUE(*o3 == 99);
+
+  o3 = nullopt;
+  EXPECT_TRUE(o3.has_value() == false);
 }
 
 TYPED_TEST(optTyped, defaultConstructor)
