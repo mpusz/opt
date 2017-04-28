@@ -13,6 +13,54 @@ the value is set or not. On the other hand type `T` should be a type that does n
 values from its underlying representation thus leaving a possibly to use one of them as a _Null_
 value that express emptiness of type `T`.
 
+## Dependencies
+
+`opt<T, Policy>` library depends on C++14 constexpr features and `std::optional<T>` existence so
+a fairly modern compiler is needed. 
+
+## Installation
+
+`opt<T, Policy>` is a header-only library. Its implementation was splited to:
+ - `opt.h` that contains the most important implementation and is intended to be included by the user with
+   `#include <opt.h>` in the code
+ - `opt_bits.h` that contains less important implementation details and is already included by `opt.h` header file
+
+## Usage
+
+Here is a simple example of how to use `opt<T, Policy>` for some artificial type `price`:
+
+```cpp
+  using price = int;
+  using opt_price = opt<price, opt_null_value_policy<price, -1>>;
+  static_assert(sizeof(opt_price) == sizeof(int));
+
+  constexpr opt_price o1;
+  static_assert(static_cast<bool>(o1) == false);
+  static_assert(o1.has_value() == false);
+  static_assert(o1.value_or(123) == 123);
+
+  constexpr opt_price o2{99};
+  static_assert(static_cast<bool>(o2) == true);
+  static_assert(o2.has_value() == true);
+  static_assert(*o2 == 99);
+  static_assert(o2.value() == 99);
+  static_assert(o2.value_or(123) == 99);
+
+  opt_price o3{o2};
+  assert(o3.has_value() == true);
+  assert(*o3 == 99);
+
+  o3 = o1;
+  assert(o3.has_value() == false);
+
+  o3 = o2;
+  assert(o3.has_value() == true);
+  assert(*o3 == 99);
+
+  o3 = nullopt;
+  assert(o3.has_value() == false);
+```
+
 ### `Policy` basic interface
 
 `opt<T, Policy>` uses `Policy` class to provide all necessary information needed for proper class operation. The
