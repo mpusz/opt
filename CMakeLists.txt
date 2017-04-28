@@ -43,7 +43,6 @@ if(MSVC)
 add_definitions(-DGTEST_LANG_CXX11=1 -DGTEST_HAS_TR1_TUPLE=0)
 endif()
 add_subdirectory(src/external/googletest EXCLUDE_FROM_ALL)
-target_include_directories(gtest_main PUBLIC src/external/googletest/include)
 add_library(google::test ALIAS gtest_main)
 
 # compilers-specific configuration
