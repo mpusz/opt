@@ -25,6 +25,7 @@
 
 namespace {
 
+  using namespace mp;
   using namespace OPTIONAL_NAMESPACE;
 
   struct my_bool {
@@ -58,51 +59,51 @@ namespace {
   constexpr bool operator==(weekday lhs, weekday::underlying_type rhs) noexcept { return lhs.get() == rhs; }
 }
 
-template<>
-struct opt_default_policy<bool> {
-private:
-  union storage {
-    bool value;
-    std::int8_t null_value = -1;
-    storage() = default;
-    constexpr storage(bool v) noexcept : value{v} {}
+namespace mp {
+
+  template<>
+  struct opt_default_policy<bool> {
+  private:
+    union storage {
+      bool value;
+      std::int8_t null_value = -1;
+      storage() = default;
+      constexpr storage(bool v) noexcept : value{v} {}
+    };
+
+  public:
+    using storage_type = storage;
+    static constexpr storage_type null_value() noexcept { return storage_type{}; }
+    static constexpr bool has_value(storage_type s) noexcept { return s.null_value != -1; }
   };
 
-public:
-  using storage_type = storage;
-  static constexpr storage_type null_value() noexcept { return storage_type{}; }
-  static constexpr bool has_value(storage_type s) noexcept { return s.null_value != -1; }
-};
-
-template<>
-struct opt_default_policy<my_bool> {
-  static my_bool null_value() noexcept { return my_bool{std::uint8_t{255}}; }
-  static bool has_value(my_bool value) noexcept { return value.value_ != 255; }
-};
-
-template<>
-struct opt_default_policy<weekday> {
-  union storage_type {
-    weekday value;
-    weekday::underlying_type null_value = 7;
-
-    constexpr storage_type() noexcept {};
-    constexpr storage_type(weekday v) : value{v} {}
-    constexpr storage_type(weekday::underlying_type v) : value{v} {}
-    storage_type& operator=(weekday v)
-    {
-      value = v;
-      return *this;
-    }
+  template<>
+  struct opt_default_policy<my_bool> {
+    static my_bool null_value() noexcept { return my_bool{std::uint8_t{255}}; }
+    static bool has_value(my_bool value) noexcept { return value.value_ != 255; }
   };
 
-public:
-  static constexpr storage_type null_value() noexcept { return storage_type{}; }
-  static constexpr bool has_value(storage_type value) noexcept
-  {
-    return value.null_value != 7;
-  }
-};
+  template<>
+  struct opt_default_policy<weekday> {
+    union storage_type {
+      weekday value;
+      weekday::underlying_type null_value = 7;
+
+      constexpr storage_type() noexcept {};
+      constexpr storage_type(weekday v) : value{v} {}
+      constexpr storage_type(weekday::underlying_type v) : value{v} {}
+      storage_type& operator=(weekday v)
+      {
+        value = v;
+        return *this;
+      }
+    };
+
+  public:
+    static constexpr storage_type null_value() noexcept { return storage_type{}; }
+    static constexpr bool has_value(storage_type value) noexcept { return value.null_value != 7; }
+  };
+}
 
 namespace {
 
