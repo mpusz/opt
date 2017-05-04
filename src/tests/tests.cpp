@@ -39,34 +39,34 @@ namespace {
   class weekday {
   public:
     using underlying_type = std::int8_t;
-    constexpr explicit weekday(underlying_type v) : value_{v}
+    explicit weekday(underlying_type v) : value_{v}
     {
       if(v < 0 || v > 6) throw std::out_of_range{"weekday value outside of allowed range"};
     }
-    constexpr weekday& operator=(underlying_type v)
+    weekday& operator=(underlying_type v)
     {
       if(v < 0 || v > 6) throw std::out_of_range{"weekday value outside of allowed range"};
       value_ = v;
       return *this;
     }
-    constexpr underlying_type get() const noexcept { return value_; }
+    underlying_type get() const noexcept { return value_; }
 
   private:
     underlying_type value_;  // 0 - 6
   };
-  constexpr bool operator==(weekday lhs, weekday rhs) noexcept { return lhs.get() == rhs.get(); }
-  constexpr bool operator==(weekday::underlying_type lhs, weekday rhs) noexcept { return lhs == rhs.get(); }
-  constexpr bool operator==(weekday lhs, weekday::underlying_type rhs) noexcept { return lhs.get() == rhs; }
+  inline bool operator==(weekday lhs, weekday rhs) noexcept { return lhs.get() == rhs.get(); }
+  inline bool operator==(weekday::underlying_type lhs, weekday rhs) noexcept { return lhs == rhs.get(); }
+  inline bool operator==(weekday lhs, weekday::underlying_type rhs) noexcept { return lhs.get() == rhs; }
 
   class weekday_mask {
   public:
     using underlying_type = std::uint8_t;
-    constexpr explicit weekday_mask(std::initializer_list<weekday> days)
+    explicit weekday_mask(std::initializer_list<weekday> days)
     {
       for(auto d : days)
         mask_ |= (1 << d.get());
     }
-    constexpr underlying_type mask() const noexcept { return mask_; }
+    underlying_type mask() const noexcept { return mask_; }
 
   private:
     underlying_type mask_ = 0;
@@ -104,9 +104,9 @@ namespace mp {
       weekday value;
       weekday::underlying_type null_value = 7;
 
-      constexpr storage_type() noexcept {};
-      constexpr storage_type(weekday v) : value{v} {}
-      constexpr storage_type(weekday::underlying_type v) : value{v} {}
+      storage_type() noexcept {};
+      storage_type(weekday v) : value{v} {}
+      storage_type(weekday::underlying_type v) : value{v} {}
       storage_type& operator=(weekday v)
       {
         value = v;
@@ -115,8 +115,8 @@ namespace mp {
     };
 
   public:
-    static constexpr storage_type null_value() noexcept { return storage_type{}; }
-    static constexpr bool has_value(storage_type value) noexcept { return value.null_value != 7; }
+    static storage_type null_value() noexcept { return storage_type{}; }
+    static bool has_value(storage_type value) noexcept { return value.null_value != 7; }
   };
 
   template<>
@@ -125,9 +125,9 @@ namespace mp {
       weekday_mask value;
       weekday_mask::underlying_type null_value = 0b1111'1111;
 
-      constexpr storage_type() noexcept {};
-      constexpr storage_type(weekday_mask v) : value{v} {}
-      constexpr explicit storage_type(std::initializer_list<weekday> days) : value{days} {}
+      storage_type() noexcept {};
+      storage_type(weekday_mask v) : value{v} {}
+      explicit storage_type(std::initializer_list<weekday> days) : value{days} {}
 
       storage_type& operator=(weekday_mask v)
       {
@@ -137,8 +137,8 @@ namespace mp {
     };
 
   public:
-    static constexpr storage_type null_value() noexcept { return storage_type{}; }
-    static constexpr bool has_value(storage_type value) noexcept { return value.null_value != 0b1111'1111; }
+    static storage_type null_value() noexcept { return storage_type{}; }
+    static bool has_value(storage_type value) noexcept { return value.null_value != 0b1111'1111; }
   };
 }
 
@@ -195,8 +195,8 @@ namespace {
     static constexpr other_type other_value_1 = 0;
     static constexpr other_type other_value_2 = 3;
   };
-  constexpr weekday opt_traits<weekday>::value_1{0};
-  constexpr weekday opt_traits<weekday>::value_2{3};
+  const weekday opt_traits<weekday>::value_1{0};
+  const weekday opt_traits<weekday>::value_2{3};
 
   template<>
   struct opt_traits<double> {
