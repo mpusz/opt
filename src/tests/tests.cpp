@@ -39,24 +39,24 @@ namespace {
   class weekday {
   public:
     using underlying_type = std::int8_t;
-    explicit weekday(underlying_type v) : value_{v}
+    constexpr explicit weekday(underlying_type v) : value_{v}
     {
       if(v < 0 || v > 6) throw std::out_of_range{"weekday value outside of allowed range"};
     }
-    weekday& operator=(underlying_type v)
+    constexpr weekday& operator=(underlying_type v)
     {
       if(v < 0 || v > 6) throw std::out_of_range{"weekday value outside of allowed range"};
       value_ = v;
       return *this;
     }
-    underlying_type get() const noexcept { return value_; }
+    constexpr underlying_type get() const noexcept { return value_; }
 
   private:
     underlying_type value_;  // 0 - 6
   };
-  inline bool operator==(weekday lhs, weekday rhs) noexcept { return lhs.get() == rhs.get(); }
-  inline bool operator==(weekday::underlying_type lhs, weekday rhs) noexcept { return lhs == rhs.get(); }
-  inline bool operator==(weekday lhs, weekday::underlying_type rhs) noexcept { return lhs.get() == rhs; }
+  constexpr bool operator==(weekday lhs, weekday rhs) noexcept { return lhs.get() == rhs.get(); }
+  constexpr bool operator==(weekday::underlying_type lhs, weekday rhs) noexcept { return lhs == rhs.get(); }
+  constexpr bool operator==(weekday lhs, weekday::underlying_type rhs) noexcept { return lhs.get() == rhs; }
 
   class weekday_mask {
   public:
@@ -104,9 +104,9 @@ namespace mp {
       weekday value;
       weekday::underlying_type null_value = 7;
 
-      storage_type() noexcept {};
-      storage_type(weekday v) : value{v} {}
-      storage_type(weekday::underlying_type v) : value{v} {}
+      constexpr storage_type() noexcept {};
+      constexpr storage_type(weekday v) : value{v} {}
+      constexpr storage_type(weekday::underlying_type v) : value{v} {}
       storage_type& operator=(weekday v)
       {
         value = v;
@@ -115,8 +115,8 @@ namespace mp {
     };
 
   public:
-    static storage_type null_value() noexcept { return storage_type{}; }
-    static bool has_value(storage_type value) noexcept { return value.null_value != 7; }
+    static constexpr storage_type null_value() noexcept { return storage_type{}; }
+    static constexpr bool has_value(storage_type value) noexcept { return value.null_value != 7; }
   };
 
   template<>
@@ -195,8 +195,8 @@ namespace {
     static constexpr other_type other_value_1 = 0;
     static constexpr other_type other_value_2 = 3;
   };
-  const weekday opt_traits<weekday>::value_1{0};
-  const weekday opt_traits<weekday>::value_2{3};
+  constexpr weekday opt_traits<weekday>::value_1{0};
+  constexpr weekday opt_traits<weekday>::value_2{3};
 
   template<>
   struct opt_traits<double> {
