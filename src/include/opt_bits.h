@@ -30,6 +30,7 @@
 #define OPTIONAL_NAMESPACE ::std::experimental
 #endif
 #include <type_traits>
+#include <cassert>
 
 namespace mp {
 

@@ -64,6 +64,7 @@ namespace mp {
     template<typename... Args, detail::Requires<std::is_constructible<T, Args...>> = true>
     constexpr explicit opt(OPTIONAL_NAMESPACE::in_place_t, Args&&... args) : storage_{std::forward<Args>(args)...}
     {
+      assert(has_value());
     }
 
     template<typename U, typename... Args,
@@ -71,6 +72,7 @@ namespace mp {
     constexpr explicit opt(OPTIONAL_NAMESPACE::in_place_t, std::initializer_list<U> ilist, Args&&... args)
         : storage_{ilist, std::forward<Args>(args)...}
     {
+      assert(has_value());
     }
 
     template<typename U = T,
@@ -81,6 +83,7 @@ namespace mp {
              detail::Requires<std::negation<std::is_convertible<U&&, T>>> = true>
     explicit constexpr opt(U&& value) : storage_{std::forward<U>(value)}
     {
+      assert(has_value());
     }
 
     template<typename U = T,
@@ -91,6 +94,7 @@ namespace mp {
              detail::Requires<std::is_convertible<U&&, T>> = true>
     constexpr opt(U&& value) : storage_{std::forward<U>(value)}
     {
+      assert(has_value());
     }
 
     template<typename U, typename P,
@@ -146,6 +150,7 @@ namespace mp {
     opt& operator=(U&& value)
     {
       **this = std::forward<U>(value);
+      assert(has_value());
       return *this;
     }
 
