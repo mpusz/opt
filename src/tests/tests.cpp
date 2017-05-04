@@ -57,6 +57,21 @@ namespace {
   constexpr bool operator==(weekday lhs, weekday rhs) noexcept { return lhs.get() == rhs.get(); }
   constexpr bool operator==(weekday::underlying_type lhs, weekday rhs) noexcept { return lhs == rhs.get(); }
   constexpr bool operator==(weekday lhs, weekday::underlying_type rhs) noexcept { return lhs.get() == rhs; }
+
+  class weekday_mask {
+  public:
+    using underlying_type = std::uint8_t;
+    constexpr explicit weekday_mask(std::initializer_list<weekday> days)
+    {
+      for(auto d : days)
+        mask_ |= (1 << d.get());
+    }
+    constexpr underlying_type mask() const noexcept { return mask_; }
+
+  private:
+    underlying_type mask_ = 0;
+  };
+
 }
 
 namespace mp {
@@ -102,6 +117,28 @@ namespace mp {
   public:
     static constexpr storage_type null_value() noexcept { return storage_type{}; }
     static constexpr bool has_value(storage_type value) noexcept { return value.null_value != 7; }
+  };
+
+  template<>
+  struct opt_default_policy<weekday_mask> {
+    union storage_type {
+      weekday_mask value;
+      weekday_mask::underlying_type null_value = 0b1111'1111;
+
+      constexpr storage_type() noexcept {};
+      constexpr storage_type(weekday_mask v) : value{v} {}
+      constexpr explicit storage_type(std::initializer_list<weekday> days) : value{days} {}
+
+      storage_type& operator=(weekday_mask v)
+      {
+        value = v;
+        return *this;
+      }
+    };
+
+  public:
+    static constexpr storage_type null_value() noexcept { return storage_type{}; }
+    static constexpr bool has_value(storage_type value) noexcept { return value.null_value != 0b1111'1111; }
   };
 }
 
@@ -822,6 +859,18 @@ TYPED_TEST(optTyped, swapNotEmptyWithNotEmpty)
   EXPECT_EQ(this->value_1, *o2);
   EXPECT_EQ(this->value_1, o2.value());
   EXPECT_EQ(this->value_1, o2.value_or(this->value_2));
+}
+
+TEST(opt, constructorInitializerList)
+{
+  using wd = weekday;
+  weekday_mask mask{wd{0}, wd{2}, wd{6}};
+  opt<weekday_mask> o1{in_place, {wd{0}, wd{2}, wd{6}}};
+  EXPECT_TRUE(o1);
+  EXPECT_TRUE(o1.has_value());
+  EXPECT_EQ(0b0100'0101, (*o1).mask());
+  EXPECT_EQ(0b0100'0101, o1.value().mask());
+  EXPECT_EQ(0b0100'0101, o1.value_or(weekday_mask{wd{0}, wd{1}, wd{3}}).mask());
 }
 
 TEST(opt, constructOutOfRange)
