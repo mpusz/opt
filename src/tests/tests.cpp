@@ -109,7 +109,7 @@ namespace {
 
   template<typename T>
   struct null_floating {
-    static constexpr T value = 0.0f;
+    static constexpr T null_value = 0.0f;
   };
 
   template<typename T>

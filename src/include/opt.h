@@ -40,7 +40,7 @@ namespace mp {
   template<typename T, typename NullType>
   struct opt_null_type_policy {
     static constexpr bool has_value(T value) noexcept { return value != null_value(); }
-    static constexpr T null_value() noexcept { return NullType::value; }
+    static constexpr T null_value() noexcept { return NullType::null_value; }
   };
 
   template<typename T, typename Policy = opt_default_policy<T>>

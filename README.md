@@ -20,7 +20,7 @@ a fairly modern compiler is needed.
 
 ## Installation
 
-`mp::opt<T, Policy>` is a header-only library. Its implementation was splited to:
+`mp::opt<T, Policy>` is a header-only library. Its implementation was split to:
  - `opt.h` that contains the most important implementation and is intended to be included by the user with
    `#include <opt.h>` in the code
  - `opt_bits.h` that contains less important implementation details and is already included by `opt.h` header file
@@ -89,7 +89,7 @@ mp::opt<my_type> my_opt_val;
 ```
 
 The latter solution is suggested for user's types that will always have the same special value used as _Null_ while
-the former should be used for builtin types like 'int' where the type can express different quantities thuse having
+the former should be used for builtin types like 'int' where the type can express different quantities thus having
 different _Null_ special values (e.g. age, price, month, etc).
 
 ### `Policy` types provided with the library
@@ -103,9 +103,9 @@ the library provides 2 additional policy types:
    ```
 
  - `mp::opt_null_type_policy<T, NullType>` may be used for types which values cannot be used as template argument
-   (e.g. `float`). That polucy type assumes that `NullType::value` will represent _Null_ value. For example:
+   (e.g. `float`). That policy type assumes that `NullType::null_value` will represent _Null_ value. For example:
    ```cpp
-   struct my_null_float { static constexpr float value = 0.0f; };
+   struct my_null_float { static constexpr float null_value = 0.0f; };
    mp::opt<float, mp::opt_null_type_policy<float, my_null_float>> opt_float;
    ```
 
