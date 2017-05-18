@@ -232,6 +232,7 @@ namespace mp {
     return !(lhs == rhs);
   }
 
+#ifdef OPT_REL_OPS
   template<typename T, typename P, typename U, typename R>
   constexpr bool operator<(const opt<T, P>& lhs, const opt<U, R>& rhs)
   {
@@ -255,6 +256,7 @@ namespace mp {
   {
     return !(lhs < rhs);
   }
+#endif
 
   // clang-format off
 	// comparison with nullopt
@@ -262,7 +264,9 @@ namespace mp {
 	template<typename T, typename P> constexpr bool operator==(OPTIONAL_NAMESPACE::nullopt_t, const opt<T, P>& o) noexcept { return !o; }
 	template<typename T, typename P> constexpr bool operator!=(const opt<T, P>& o, OPTIONAL_NAMESPACE::nullopt_t) noexcept { return static_cast<bool>(o); }
 	template<typename T, typename P> constexpr bool operator!=(OPTIONAL_NAMESPACE::nullopt_t, const opt<T, P>& o) noexcept { return static_cast<bool>(o); }
-	template<typename T, typename P> constexpr bool operator< (const opt<T, P>&, OPTIONAL_NAMESPACE::nullopt_t) noexcept { return false; }
+
+#ifdef OPT_REL_OPS
+  template<typename T, typename P> constexpr bool operator< (const opt<T, P>&, OPTIONAL_NAMESPACE::nullopt_t) noexcept { return false; }
 	template<typename T, typename P> constexpr bool operator< (OPTIONAL_NAMESPACE::nullopt_t, const opt<T, P>& o) noexcept { return static_cast<bool>(o); }
 	template<typename T, typename P> constexpr bool operator<=(const opt<T, P>& o, OPTIONAL_NAMESPACE::nullopt_t) noexcept { return !o; }
 	template<typename T, typename P> constexpr bool operator<=(OPTIONAL_NAMESPACE::nullopt_t, const opt<T, P>&) noexcept { return true; }
@@ -270,12 +274,15 @@ namespace mp {
 	template<typename T, typename P> constexpr bool operator> (OPTIONAL_NAMESPACE::nullopt_t, const opt<T, P>&) noexcept { return false; }
 	template<typename T, typename P> constexpr bool operator>=(const opt<T, P>&, OPTIONAL_NAMESPACE::nullopt_t) noexcept { return true; }
 	template<typename T, typename P> constexpr bool operator>=(OPTIONAL_NAMESPACE::nullopt_t, const opt<T, P>& o) noexcept { return !o; }
+#endif
 
 	// comparison with T
 	template<typename T, typename P, typename U> constexpr bool operator==(const opt<T, P>& o, const U& value) { return  o && *o == value; }
 	template<typename T, typename P, typename U> constexpr bool operator==(const U& value, const opt<T, P>& o) { return  o && value == *o; }
 	template<typename T, typename P, typename U> constexpr bool operator!=(const opt<T, P>& o, const U& value) { return !o || *o != value; }
 	template<typename T, typename P, typename U> constexpr bool operator!=(const U& value, const opt<T, P>& o) { return !o || value != *o; }
+
+#ifdef OPT_REL_OPS
 	template<typename T, typename P, typename U> constexpr bool operator< (const opt<T, P>& o, const U& value) { return !o || *o < value; }
 	template<typename T, typename P, typename U> constexpr bool operator< (const U& value, const opt<T, P>& o) { return  o && value < *o; }
 	template<typename T, typename P, typename U> constexpr bool operator<=(const opt<T, P>& o, const U& value) { return !o || *o <= value; }
@@ -284,6 +291,7 @@ namespace mp {
 	template<typename T, typename P, typename U> constexpr bool operator> (const U& value, const opt<T, P>& o) { return !o || value > *o; }
 	template<typename T, typename P, typename U> constexpr bool operator>=(const opt<T, P>& o, const U& value) { return  o && *o >= value; }
 	template<typename T, typename P, typename U> constexpr bool operator>=(const U& value, const opt<T, P>& o) { return !o || value >= *o; }
+#endif
   // clang-format on
 }
 

@@ -22,6 +22,7 @@
 
 set(SOURCE_FILES tests.cpp)
 
+add_definitions(-DOPT_REL_OPS)
 add_executable(unit_tests ${SOURCE_FILES})
 target_link_libraries(unit_tests
         PRIVATE google::test)
