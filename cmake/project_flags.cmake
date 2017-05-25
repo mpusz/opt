@@ -22,7 +22,9 @@
 
 # define options
 option(CODE_COVERAGE "Compile project for C++ code coverage" OFF)
-#option(TOOLCHAIN)
+
+# print options
+message(STATUS "CODE_COVERAGE=${CODE_COVERAGE}")
 
 # configure compiler warning level
 if(MSVC)
@@ -33,6 +35,9 @@ if(MSVC)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
     endif()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /w44062 /w44263 /w44266 /w44640")
+
+    # disable language extensions
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Za")
 
     # treat warnings as errors
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX")

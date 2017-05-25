@@ -34,8 +34,10 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++latest")
 else()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1z")
 endif()
-
 set(CMAKE_CXX_STANDARD_REQUIRED on)
+
+# global compilation flags
+include(cmake/global_flags.cmake OPTIONAL)
 
 # add dependencies
 set(gtest_force_shared_crt ON CACHE BOOL "Use shared (DLL) run-time lib even when Google Test is built as static lib.")
@@ -45,8 +47,8 @@ endif()
 add_subdirectory(src/external/googletest EXCLUDE_FROM_ALL)
 add_library(google::test ALIAS gtest_main)
 
-# compilers-specific configuration
-include(cmake/compile_warnings.cmake OPTIONAL)
+# project-specific compilation flags
+include(cmake/project_flags.cmake OPTIONAL)
 
 # add project code
 include_directories(src/include)
