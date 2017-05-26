@@ -14,6 +14,7 @@ platform:
  
 configuration:
   - Release
+  - Debug
 
 init:
   - git config --global core.autocrlf input
@@ -32,7 +33,7 @@ build:
   project: $(APPVEYOR_BUILD_FOLDER)\build\$(APPVEYOR_PROJECT_NAME).sln
 
 test_script:
-  - '%APPVEYOR_BUILD_FOLDER%\build\src\tests\Release\unit_tests.exe --gtest_output=xml:unit_tests.xml'
+  - '%APPVEYOR_BUILD_FOLDER%\build\src\tests\%CONFIGURATION%\unit_tests.exe --gtest_output=xml:unit_tests.xml'
 
 on_finish:
   - ps: (new-object net.webclient).UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\unit_tests.xml))
