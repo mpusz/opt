@@ -43,18 +43,44 @@ namespace mp {
     static constexpr T null_value() noexcept { return NullType::null_value; }
   };
 
+  // opt_policy_traits class template provides the standardized way to access properties of user Policy types
+  template<typename T, typename Policy>
+  struct opt_policy_traits {
+    // Policy::storage_type if exists, T otherwise
+    using storage_type = typename detail::detect_storage_type<T, Policy>::type;
+
+    // always calls Policy::null_value()
+    static constexpr storage_type null_value() noexcept(noexcept(Policy::null_value())) { return Policy::null_value(); }
+
+    // calls Policy::has_value() if available, otherwise uses operator==() for comparison
+    template<typename U = storage_type, typename P = Policy, detail::Requires<detail::has_has_value<U, P>> = true>
+    static constexpr bool has_value(const U& storage) noexcept(noexcept(Policy::has_value(storage)))
+    {
+      return Policy::has_value(storage);
+    }
+
+    template<typename U = storage_type, typename P = Policy,
+             detail::Requires<std::negation<detail::has_has_value<U, P>>> = true>
+    static constexpr bool has_value(const U& value) noexcept(noexcept(null_value()))
+    {
+      return !(value == null_value());
+    }
+  };
+
   template<typename T, typename Policy = opt_default_policy<T>>
   class opt {
-    using traits = detail::opt_policy_traits<T, Policy>;
-    using storage_type = typename traits::storage_type;
+  public:
+    using value_type = T;
+    using policy_type = Policy;
+    using traits_type = opt_policy_traits<T, Policy>;
 
+  private:
+    using storage_type = typename traits_type::storage_type;
     storage_type storage_;
 
   public:
-    using value_type = T;
-
     // constructors
-    constexpr opt() noexcept(noexcept(storage_type{traits::null_value()})) : storage_{traits::null_value()} {}
+    constexpr opt() noexcept(noexcept(storage_type{traits_type::null_value()})) : storage_{traits_type::null_value()} {}
 
     constexpr opt(OPTIONAL_NAMESPACE::nullopt_t) noexcept(noexcept(opt<T, Policy>{})) : opt{} {}
 
@@ -102,7 +128,7 @@ namespace mp {
                               std::disjunction<std::is_same<std::decay_t<T>, bool>,
                                                std::negation<detail::constructs_or_converts_from_opt<T, U, P>>>> = true,
              detail::Requires<std::negation<std::is_convertible<const U&, T>>> = true>
-    explicit opt(const opt<U, P>& other) : storage_{other.has_value() ? T{*other} : traits::null_value()}
+    explicit opt(const opt<U, P>& other) : storage_{other.has_value() ? T{*other} : traits_type::null_value()}
     {
     }
 
@@ -111,7 +137,7 @@ namespace mp {
                               std::disjunction<std::is_same<std::decay_t<T>, bool>,
                                                std::negation<detail::constructs_or_converts_from_opt<T, U, P>>>> = true,
              detail::Requires<std::is_convertible<const U&, T>> = true>
-    opt(const opt<U, P>& other) : storage_{other.has_value() ? T{*other} : traits::null_value()}
+    opt(const opt<U, P>& other) : storage_{other.has_value() ? T{*other} : traits_type::null_value()}
     {
     }
 
@@ -121,7 +147,7 @@ namespace mp {
                                                std::negation<detail::constructs_or_converts_from_opt<T, U, P>>>> = true,
              detail::Requires<std::negation<std::is_convertible<U&&, T>>> = true>
     explicit constexpr opt(opt<U, P>&& other)
-        : storage_{other.has_value() ? T{std::move(*other)} : traits::null_value()}
+        : storage_{other.has_value() ? T{std::move(*other)} : traits_type::null_value()}
     {
     }
 
@@ -130,7 +156,7 @@ namespace mp {
                               std::disjunction<std::is_same<std::decay_t<T>, bool>,
                                                std::negation<detail::constructs_or_converts_from_opt<T, U, P>>>> = true,
              detail::Requires<std::is_convertible<U&&, T>> = true>
-    constexpr opt(opt<U, P>&& other) : storage_{other.has_value() ? T{std::move(*other)} : traits::null_value()}
+    constexpr opt(opt<U, P>&& other) : storage_{other.has_value() ? T{std::move(*other)} : traits_type::null_value()}
     {
     }
 
@@ -195,9 +221,9 @@ namespace mp {
     constexpr T&& operator*() && { return std::move(*reinterpret_cast<T*>(&storage_)); }
     constexpr const T&& operator*() const && { return std::move(*reinterpret_cast<const T*>(&storage_)); }
 
-    constexpr bool has_value() const noexcept(noexcept(traits::has_value(std::declval<storage_type>())))
+    constexpr bool has_value() const noexcept(noexcept(traits_type::has_value(std::declval<storage_type>())))
     {
-      return traits::has_value(storage_);
+      return traits_type::has_value(storage_);
     }
     constexpr explicit operator bool() const noexcept(noexcept(std::declval<opt<T, Policy>>().has_value()))
     {
@@ -205,18 +231,18 @@ namespace mp {
     }
 
     // clang-format off
-		constexpr const T& value() const& { if (!has_value()) throw OPTIONAL_NAMESPACE::bad_optional_access{}; return **this; }
-		constexpr T& value() & { if (!has_value()) throw OPTIONAL_NAMESPACE::bad_optional_access{}; return **this; }
-		constexpr T&& value() && { if (!has_value()) throw OPTIONAL_NAMESPACE::bad_optional_access{}; return std::move(**this); }
-		constexpr const T&& value() const&&            { if (!has_value()) throw OPTIONAL_NAMESPACE::bad_optional_access{}; return std::move(**this); }
-		template<typename U>
-		constexpr T value_or(U&& default_value) const& { return has_value() ? **this : T{ std::forward<U>(default_value) }; }
-		template<typename U>
-		constexpr T value_or(U&& default_value) && { return has_value() ? std::move(**this) : T{ std::forward<U>(default_value) }; }
+    constexpr const T& value() const&              { if (!has_value()) throw OPTIONAL_NAMESPACE::bad_optional_access{}; return **this; }
+    constexpr T& value() &                         { if (!has_value()) throw OPTIONAL_NAMESPACE::bad_optional_access{}; return **this; }
+    constexpr T&& value() &&                       { if (!has_value()) throw OPTIONAL_NAMESPACE::bad_optional_access{}; return std::move(**this); }
+    constexpr const T&& value() const&&            { if (!has_value()) throw OPTIONAL_NAMESPACE::bad_optional_access{}; return std::move(**this); }
+    template<typename U>
+    constexpr T value_or(U&& default_value) const& { return has_value() ? **this : T{ std::forward<U>(default_value) }; }
+    template<typename U>
+    constexpr T value_or(U&& default_value) &&     { return has_value() ? std::move(**this) : T{ std::forward<U>(default_value) }; }
     // clang-format on
 
     // modifiers
-    void reset() noexcept(noexcept(traits::null_value())) { storage_ = traits::null_value(); }
+    void reset() noexcept(noexcept(traits_type::null_value())) { storage_ = traits_type::null_value(); }
   };
 
   // relational operators

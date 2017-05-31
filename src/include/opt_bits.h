@@ -85,31 +85,5 @@ namespace mp {
                     "'sizeof(Policy::storage_type) != sizeof(T)' consider using std::optional<T>");
     };
 
-    // opt_policy_traits class template provides the standardized way to access properties of user Policy types
-    template<typename T, typename Policy>
-    struct opt_policy_traits {
-      // Policy::storage_type if exists, T otherwise
-      using storage_type = typename detect_storage_type<T, Policy>::type;
-
-      // always calls Policy::null_value()
-      static constexpr storage_type null_value() noexcept(noexcept(Policy::null_value()))
-      {
-        return Policy::null_value();
-      }
-
-      // calls Policy::has_value() if available, otherwise uses operator==() for comparison
-      template<typename U = storage_type, typename P = Policy, Requires<has_has_value<U, P>> = true>
-      static constexpr bool has_value(const U& storage) noexcept(noexcept(Policy::has_value(storage)))
-      {
-        return Policy::has_value(storage);
-      }
-
-      template<typename U = storage_type, typename P = Policy, Requires<std::negation<has_has_value<U, P>>> = true>
-      static constexpr bool has_value(const U& value) noexcept(noexcept(null_value()))
-      {
-        return !(value == null_value());
-      }
-    };
-
   }  // namespace detail
 }
