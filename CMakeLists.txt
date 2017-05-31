@@ -25,7 +25,7 @@ project(opt C CXX)
 
 # The project version number.
 set(VERSION_MAJOR 1 CACHE STRING "Project major version number.")
-set(VERSION_MINOR 0 CACHE STRING "Project minor version number.")
+set(VERSION_MINOR 1 CACHE STRING "Project minor version number.")
 set(VERSION_PATCH 0 CACHE STRING "Project patch version number.")
 
 #set(CMAKE_CXX_STANDARD 17)
