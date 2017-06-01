@@ -214,12 +214,12 @@ namespace mp {
     }
 
     // observers
-    constexpr const T* operator->() const { return reinterpret_cast<const T*>(&storage_); }
-    constexpr T* operator->() { return reinterpret_cast<T*>(&storage_); }
-    constexpr const T& operator*() const & { return *reinterpret_cast<const T*>(&storage_); }
-    constexpr T& operator*() & { return *reinterpret_cast<T*>(&storage_); }
-    constexpr T&& operator*() && { return std::move(*reinterpret_cast<T*>(&storage_)); }
-    constexpr const T&& operator*() const && { return std::move(*reinterpret_cast<const T*>(&storage_)); }
+    constexpr const T* operator->() const { assert(has_value()); return reinterpret_cast<const T*>(&storage_); }
+    constexpr T* operator->() { assert(has_value()); return reinterpret_cast<T*>(&storage_); }
+    constexpr const T& operator*() const & { assert(has_value()); return *reinterpret_cast<const T*>(&storage_); }
+    constexpr T& operator*() & { assert(has_value()); return *reinterpret_cast<T*>(&storage_); }
+    constexpr T&& operator*() && { assert(has_value()); return std::move(*reinterpret_cast<T*>(&storage_)); }
+    constexpr const T&& operator*() const && { assert(has_value()); return std::move(*reinterpret_cast<const T*>(&storage_)); }
 
     constexpr bool has_value() const noexcept(noexcept(traits_type::has_value(std::declval<storage_type>())))
     {
