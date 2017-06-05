@@ -78,6 +78,9 @@ namespace mp {
     using storage_type = typename traits_type::storage_type;
     storage_type storage_;
 
+    constexpr const T* data() const { return reinterpret_cast<const T*>(&storage_); }
+    constexpr T* data() { ; return reinterpret_cast<T*>(&storage_); }
+
   public:
     // constructors
     constexpr opt() noexcept(noexcept(storage_type{traits_type::null_value()})) : storage_{traits_type::null_value()} {}
@@ -175,7 +178,7 @@ namespace mp {
                               std::is_constructible<T, U>, std::is_assignable<T&, U>> = true>
     opt& operator=(U&& value)
     {
-      **this = std::forward<U>(value);
+      *data() = std::forward<U>(value);
       assert(has_value());
       return *this;
     }
@@ -214,12 +217,12 @@ namespace mp {
     }
 
     // observers
-    constexpr const T* operator->() const { assert(has_value()); return reinterpret_cast<const T*>(&storage_); }
-    constexpr T* operator->() { assert(has_value()); return reinterpret_cast<T*>(&storage_); }
-    constexpr const T& operator*() const & { assert(has_value()); return *reinterpret_cast<const T*>(&storage_); }
-    constexpr T& operator*() & { assert(has_value()); return *reinterpret_cast<T*>(&storage_); }
-    constexpr T&& operator*() && { assert(has_value()); return std::move(*reinterpret_cast<T*>(&storage_)); }
-    constexpr const T&& operator*() const && { assert(has_value()); return std::move(*reinterpret_cast<const T*>(&storage_)); }
+    constexpr const T* operator->() const { assert(has_value()); return data(); }
+    constexpr T* operator->() { assert(has_value()); return data(); }
+    constexpr const T& operator*() const & { assert(has_value()); return *data(); }
+    constexpr T& operator*() & { assert(has_value()); return *data(); }
+    constexpr T&& operator*() && { assert(has_value()); return std::move(*data()); }
+    constexpr const T&& operator*() const && { assert(has_value()); return std::move(*data()); }
 
     constexpr bool has_value() const noexcept(noexcept(traits_type::has_value(std::declval<storage_type>())))
     {
