@@ -22,13 +22,7 @@
 
 #pragma once
 
-#ifdef _MSC_VER
 #include <optional>
-#define OPTIONAL_NAMESPACE ::std
-#else
-#include <experimental/optional>
-#define OPTIONAL_NAMESPACE ::std::experimental
-#endif
 #include <type_traits>
 #include <cassert>
 

@@ -26,7 +26,7 @@
 namespace {
 
   using namespace mp;
-  using namespace OPTIONAL_NAMESPACE;
+  using namespace std;
 
   struct my_bool {
     std::uint8_t value_;
